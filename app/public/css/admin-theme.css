@@ -796,7 +796,6 @@ td:has(> .fi-ta-actions),
 /* ---------------------------------------------------------------- */
 
 /* ---- Reset: strip all Filament wrapper borders/rings ---- */
-.fi-fo-file-upload,
 .fi-fo-file-upload > div,
 .fi-fo-file-upload .fi-input-wrp,
 .fi-fo-field-wrp:has(.filepond--root) .fi-input-wrp,
@@ -824,28 +823,52 @@ td:has(> .fi-ta-actions),
     font-family: 'Lato', system-ui, sans-serif;
 }
 
-/* ---- Drop Zone Panel ---- */
+/* ---- CRITICAL: Strip ALL borders from FilePond panel sub-elements ---- */
+/* FilePond slices .filepond--panel-root into top/center/bottom sub-panels */
+/* and clones panels per item. Borders on panel-root produce duplicate    */
+/* dashed lines cutting across every row of image previews.               */
+.filepond--panel-root,
+.filepond--panel-top,
+.filepond--panel-center,
+.filepond--panel-bottom,
+.filepond--panel,
 .gk-uploader .filepond--panel-root,
-.fi-fo-file-upload .filepond--panel-root {
+.gk-uploader .filepond--panel-top,
+.gk-uploader .filepond--panel-center,
+.gk-uploader .filepond--panel-bottom,
+.gk-uploader .filepond--panel,
+.fi-fo-file-upload .filepond--panel-root,
+.fi-fo-file-upload .filepond--panel-top,
+.fi-fo-file-upload .filepond--panel-center,
+.fi-fo-file-upload .filepond--panel-bottom,
+.fi-fo-file-upload .filepond--panel {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* ---- Outer Container: single clean border on the wrapper ---- */
+.gk-uploader,
+.fi-fo-file-upload {
     background: #FAFAF9 !important;
     border: 2px dashed rgba(53, 53, 54, 0.15) !important;
     border-radius: 16px !important;
-    box-shadow: none !important;
     transition: border-color 250ms ease, background 250ms ease, box-shadow 250ms ease;
-    min-height: 140px;
+    padding: 0.25rem !important;
 }
 
-/* Hover */
-.gk-uploader:hover .filepond--panel-root,
-.fi-fo-file-upload:hover .filepond--panel-root {
+/* Hover on outer container */
+.gk-uploader:hover,
+.fi-fo-file-upload:hover {
     border-color: rgba(251, 36, 54, 0.35) !important;
     background: #FEFCFC !important;
     box-shadow: 0 0 0 4px rgba(251, 36, 54, 0.06) !important;
 }
 
-/* Drag-over */
-.gk-uploader .filepond--hopper[data-hopper-state="drag-over"] .filepond--panel-root,
-.fi-fo-file-upload .filepond--hopper[data-hopper-state="drag-over"] .filepond--panel-root {
+/* Drag-over state on outer container */
+.gk-uploader:has(.filepond--hopper[data-hopper-state="drag-over"]),
+.fi-fo-file-upload:has(.filepond--hopper[data-hopper-state="drag-over"]) {
     border-color: #FB2436 !important;
     background: linear-gradient(180deg, #FFF5F6 0%, #FFFFFF 100%) !important;
     box-shadow: 0 0 0 4px rgba(251, 36, 54, 0.1) !important;
@@ -856,13 +879,13 @@ td:has(> .fi-ta-actions),
 .fi-fo-file-upload .filepond--drop-label {
     color: #8E8E90;
     font-size: 0.88rem;
-    padding: 2.5rem 1.5rem;
+    padding: 1.75rem 1.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 140px;
+    min-height: 100px;
 }
 .gk-uploader .filepond--drop-label label,
 .fi-fo-file-upload .filepond--drop-label label {
@@ -876,9 +899,9 @@ td:has(> .fi-ta-actions),
 .fi-fo-file-upload .filepond--drop-label label::before {
     content: '';
     display: block;
-    width: 44px;
-    height: 44px;
-    margin: 0 auto 0.6rem;
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 0.5rem;
     background: no-repeat center / contain
         url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23BFBFBF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>');
     opacity: 1;
@@ -922,16 +945,27 @@ td:has(> .fi-ta-actions),
 /* ---- Individual Item Previews ---- */
 .gk-uploader .filepond--item,
 .fi-fo-file-upload .filepond--item {
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
-    transition: transform 200ms ease, box-shadow 200ms ease;
-    background: #ffffff;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+    transition: transform 200ms ease, box-shadow 200ms ease !important;
+    background: #ffffff !important;
 }
 .gk-uploader .filepond--item:hover,
 .fi-fo-file-upload .filepond--item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Ensure item panels are also transparent (FilePond clones panels per item) */
+.filepond--item .filepond--panel,
+.filepond--item .filepond--panel-root,
+.filepond--item .filepond--panel-top,
+.filepond--item .filepond--panel-center,
+.filepond--item .filepond--panel-bottom {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 /* File info bar at bottom of each preview */
@@ -940,7 +974,7 @@ td:has(> .fi-ta-actions),
     background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
     color: #FFFFFF;
     padding: 0.55rem 0.65rem;
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 12px 12px;
 }
 .gk-uploader .filepond--file-info-main,
 .fi-fo-file-upload .filepond--file-info-main {
@@ -953,7 +987,7 @@ td:has(> .fi-ta-actions),
 /* Image preview wrapper — proper sizing */
 .gk-uploader .filepond--image-preview-wrapper,
 .fi-fo-file-upload .filepond--image-preview-wrapper {
-    border-radius: 14px;
+    border-radius: 12px !important;
 }
 .gk-uploader .filepond--image-preview,
 .fi-fo-file-upload .filepond--image-preview {
@@ -963,7 +997,7 @@ td:has(> .fi-ta-actions),
 /* ---- Action Buttons (Remove / Open / Download / Edit) ---- */
 .gk-uploader .filepond--file-action-button,
 .fi-fo-file-upload .filepond--file-action-button {
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: rgba(255, 255, 255, 0.88) !important;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     color: #353536 !important;
@@ -983,19 +1017,21 @@ td:has(> .fi-ta-actions),
 
 /* ---- Gallery / Multi-Image Grid Layout ---- */
 .gk-uploader--gallery .filepond--list-scroller {
-    padding: 0.5rem;
+    padding: 0.35rem;
+}
+.gk-uploader--gallery .filepond--list {
+    left: 0.35rem !important;
+    right: 0.35rem !important;
 }
 .gk-uploader--gallery .filepond--item {
-    width: calc(33.333% - 0.75rem);
-    margin: 0.375rem;
-    aspect-ratio: 4 / 3;
-    height: auto !important;
+    width: calc(33.333% - 0.75rem) !important;
+    margin: 0.375rem !important;
 }
 @media (max-width: 900px) {
-    .gk-uploader--gallery .filepond--item { width: calc(50% - 0.75rem); }
+    .gk-uploader--gallery .filepond--item { width: calc(50% - 0.75rem) !important; }
 }
 @media (max-width: 600px) {
-    .gk-uploader--gallery .filepond--item { width: calc(100% - 0.75rem); }
+    .gk-uploader--gallery .filepond--item { width: calc(100% - 0.75rem) !important; }
 }
 .gk-uploader--gallery .filepond--image-preview-wrapper {
     height: 100%;
@@ -1270,10 +1306,10 @@ html, body {
     }
 }
 
-/* Auto-hide toolbar when modal or mobile sidebar is open */
+/* Auto-hide toolbar when mobile sidebar or a modal is open */
 .fi-sidebar-open .gk-toolbar,
 body:has(.fi-sidebar-open) .gk-toolbar,
-body:has([aria-modal="true"].fi-modal-window) .gk-toolbar {
+body:has(.fi-modal.fi-modal-open) .gk-toolbar {
     opacity: 0 !important;
     pointer-events: none !important;
 }
