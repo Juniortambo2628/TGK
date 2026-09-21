@@ -83,11 +83,6 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => Blade::render(
                 "<link rel='stylesheet' href='" . asset('css/admin-theme.css') . "?v=" . filemtime(public_path('css/admin-theme.css')) . "'>"
             ))
-            // Floating context toolbar renders once, at the end of body,
-            // and figures out which controls to show based on the page.
-            ->renderHook(PanelsRenderHook::BODY_END, fn (): string =>
-                Blade::render('<x-admin.context-toolbar />')
-            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -65,7 +65,11 @@ class PartnerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            Tables\Columns\ImageColumn::make('logo_url')->label('')->size(48),
+            Tables\Columns\ImageColumn::make('logo_url')
+                ->label('Logo')
+                ->height(40)
+                ->width(96)
+                ->extraImgAttributes(['class' => 'object-contain', 'style' => 'object-fit:contain']),
             Tables\Columns\TextColumn::make('name')->searchable()->weight('bold'),
             Tables\Columns\IconColumn::make('is_active')->boolean(),
             Tables\Columns\TextColumn::make('sort_order')->sortable(),

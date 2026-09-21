@@ -108,16 +108,28 @@ class PostResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->contentGrid([
-                'default' => 1,
-                'md' => 2,
-                'lg' => 3,
-                'xl' => 3,
-            ])
             ->columns([
-                Tables\Columns\ViewColumn::make('card')
+                Tables\Columns\ImageColumn::make('hero_url')
                     ->label('')
-                    ->view('filament.resources.post.card'),
+                    ->height(48)
+                    ->width(64)
+                    ->extraImgAttributes(['style' => 'object-fit:cover;border-radius:0.5rem']),
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Story')
+                    ->searchable()
+                    ->weight('bold')
+                    ->description(fn (Post $record): ?string => Str::limit($record->excerpt, 90))
+                    ->wrap(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->state(fn (Post $record): string => $record->published_at && $record->published_at->isPast() ? 'Published' : 'Draft')
+                    ->color(fn (string $state): string => $state === 'Published' ? 'success' : 'gray'),
+                Tables\Columns\TextColumn::make('published_at')
+                    ->label('Date')
+                    ->dateTime('d M Y')
+                    ->sortable()
+                    ->placeholder('—'),
             ])
             ->recordAction('edit')
             ->defaultSort('published_at', 'desc')
