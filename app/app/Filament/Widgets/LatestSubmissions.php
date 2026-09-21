@@ -67,7 +67,7 @@ class LatestSubmissions extends BaseWidget
                     ->label('Review')
                     ->icon('heroicon-m-arrow-top-right-on-square')
                     ->color('primary')
-                    ->url(fn (Registration $record): string => RegistrationResource::getUrl('edit', ['record' => $record])),
+                    ->url(fn (Registration $record): string => RegistrationResource::getUrl('index')),
             ])
             ->paginated(false);
     }
