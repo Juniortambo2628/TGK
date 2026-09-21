@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+vendor/
+app/node_modules/
+app/vendor/
+
+# Build assets & caches
+.phpunit.cache
+app/.phpunit.cache
+app/public/build
+app/public/hot
+app/public/storage
+app/storage/*.key
+app/storage/pail
+app/storage/framework/cache/data/*
+!app/storage/framework/cache/data/.gitignore
+app/storage/framework/sessions/*
+!app/storage/framework/sessions/.gitignore
+app/storage/framework/views/*
+!app/storage/framework/views/.gitignore
+app/storage/logs/*
+!app/storage/logs/.gitignore
+
+# Environment & local configuration
+.env
+.env.backup
+.env.production
+app/.env
+app/.env.backup
+app/.env.production
+app/.phpactor.json
+app/.phpunit.result.cache
+app/Homestead.json
+app/Homestead.yaml
+app/npm-debug.log
+app/yarn-error.log
+app/auth.json
+
+# Databases
+*.sqlite
+*.sqlite-journal
+
+# IDE & OS files
+.fleet
+.idea
+.nova
+.vscode
+.zed
+.DS_Store
+Thumbs.db
+Desktop.ini

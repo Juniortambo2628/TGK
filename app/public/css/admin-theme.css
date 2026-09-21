@@ -1,0 +1,933 @@
+/*
+ * Good Kenyan · Admin — theme polish.
+ * Loaded once per page via PanelsRenderHook::STYLES_AFTER (see
+ * AdminPanelProvider). All rules are additive: they refine Filament's
+ * default look, they never replace layout primitives.
+ *
+ * Palette (mirrors resources/css/app.css for consistency with the public site):
+ *   --gk-red:      #FB2436
+ *   --gk-red-deep: #C4101F
+ *   --gk-charcoal: #353536
+ *   --gk-grey:     #6E6E70
+ *   --gk-hairline: #E4E2DD
+ *   --gk-panel:    #F1EFEA
+ *   --gk-off:      #FAFFFD
+ */
+
+/* ---------------------------------------------------------------- */
+/* Scrollbars — subtle, thin, brand-charcoal, only visible on hover */
+/* ---------------------------------------------------------------- */
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(53, 53, 54, 0.18) transparent;
+}
+*:hover {
+    scrollbar-color: rgba(53, 53, 54, 0.35) transparent;
+}
+
+/* WebKit / Blink */
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    background-color: rgba(53, 53, 54, 0.15);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 150ms ease;
+}
+*:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(53, 53, 54, 0.32);
+}
+*::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(251, 36, 54, 0.55);
+}
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Hide scrollbars entirely on horizontal tab strips — they clutter the UI */
+.fi-tabs,
+.fi-tabs-ctn,
+.fi-tabs [role="tablist"] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.fi-tabs::-webkit-scrollbar,
+.fi-tabs-ctn::-webkit-scrollbar,
+.fi-tabs [role="tablist"]::-webkit-scrollbar {
+    display: none;
+}
+
+/* ---------------------------------------------------------------- */
+/* Sidebar refinements — quieter groups, tighter items              */
+/* ---------------------------------------------------------------- */
+.fi-sidebar-nav-groups {
+    padding-block: 0.75rem;
+}
+.fi-sidebar-item-label {
+    font-weight: 500;
+}
+.fi-sidebar-item.fi-active .fi-sidebar-item-label {
+    font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- */
+/* Give the page a bit of breathing room at the bottom so the       */
+/* floating toolbar never covers the last field.                    */
+/* ---------------------------------------------------------------- */
+.fi-page {
+    padding-bottom: 6rem !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* Floating context toolbar                                         */
+/* ---------------------------------------------------------------- */
+.gk-toolbar {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem;
+    background: #ffffff;
+    color: #353536;
+    border-radius: 999px;
+    box-shadow:
+        0 2px 6px rgba(53, 53, 54, 0.05),
+        0 12px 32px rgba(53, 53, 54, 0.18),
+        0 0 0 1px rgba(53, 53, 54, 0.06);
+    max-width: min(94vw, 900px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(1rem);
+    transition: opacity 220ms ease, transform 220ms ease;
+    font-family: 'Lato', system-ui, -apple-system, sans-serif;
+}
+.gk-toolbar.is-ready {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+.gk-toolbar__group {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.35rem;
+}
+.gk-toolbar__group + .gk-toolbar__group {
+    border-left: 1px solid #E4E2DD;
+}
+.gk-toolbar__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6E6E70;
+    padding: 0 0.5rem;
+    white-space: nowrap;
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.gk-toolbar__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    background: transparent;
+    color: #353536;
+    font-weight: 700;
+    font-size: 0.82rem;
+    line-height: 1;
+    border: 0;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+    white-space: nowrap;
+}
+.gk-toolbar__btn:hover {
+    background: #F1EFEA;
+}
+.gk-toolbar__btn.is-primary {
+    background: #FB2436;
+    color: #ffffff;
+}
+.gk-toolbar__btn.is-primary:hover {
+    background: #C4101F;
+    transform: translateY(-1px);
+}
+.gk-toolbar__btn.is-danger {
+    color: #C4101F;
+}
+.gk-toolbar__btn.is-danger:hover {
+    background: rgba(196, 16, 31, 0.08);
+}
+.gk-toolbar__btn.is-active {
+    background: #353536;
+    color: #ffffff;
+}
+.gk-toolbar__btn svg {
+    width: 1rem;
+    height: 1rem;
+}
+.gk-toolbar__search {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.75rem;
+    background: #F1EFEA;
+    border-radius: 999px;
+    height: 2.2rem;
+    min-width: 12rem;
+}
+.gk-toolbar__search input {
+    background: transparent;
+    border: 0;
+    outline: 0;
+    padding: 0.25rem 0;
+    font-size: 0.85rem;
+    color: #353536;
+    width: 100%;
+}
+.gk-toolbar__search svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: #6E6E70;
+}
+.gk-toolbar__pills {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    overflow-x: auto;
+    max-width: 26rem;
+    padding: 0 0.15rem;
+    scrollbar-width: none;
+}
+.gk-toolbar__pills::-webkit-scrollbar { display: none; }
+.gk-toolbar__pill {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6E6E70;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+.gk-toolbar__pill:hover {
+    background: #F1EFEA;
+    color: #353536;
+}
+.gk-toolbar__pill.is-active {
+    background: #353536;
+    color: #ffffff;
+}
+.gk-toolbar__hint {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(100% + 0.5rem);
+    background: #353536;
+    color: #FAFFFD;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease;
+}
+.gk-toolbar__btn:hover .gk-toolbar__hint {
+    opacity: 1;
+}
+
+/* Subsection dropdown button in toolbar */
+.gk-toolbar__dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: #F1EFEA;
+    color: #353536;
+    font-weight: 700;
+    font-size: 0.82rem;
+    line-height: 1;
+    border: 0;
+    cursor: pointer;
+    transition: all 150ms ease;
+    white-space: nowrap;
+}
+.gk-toolbar__dropdown-btn:hover,
+.gk-toolbar__dropdown-btn.is-open {
+    background: #E8E6E0;
+    color: #1A1A1A;
+}
+.gk-toolbar__dropdown-current {
+    font-weight: 800;
+    color: #353536;
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gk-toolbar__chevron {
+    transition: transform 180ms ease;
+    color: #6E6E70;
+}
+
+/* Dropdown menu container popping upwards above toolbar */
+.gk-toolbar__dropdown-menu {
+    position: absolute;
+    bottom: calc(100% + 0.65rem);
+    left: 0;
+    min-width: 240px;
+    max-width: 320px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid rgba(53, 53, 54, 0.08);
+    box-shadow:
+        0 16px 40px -8px rgba(53, 53, 54, 0.22),
+        0 0 0 1px rgba(53, 53, 54, 0.04);
+    padding: 0.5rem;
+    z-index: 60;
+    transform-origin: bottom left;
+}
+.gk-toolbar__dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem 0.4rem;
+    border-bottom: 1px solid rgba(53, 53, 54, 0.06);
+    margin-bottom: 0.35rem;
+}
+.gk-toolbar__dropdown-title {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6E6E70;
+}
+.gk-toolbar__dropdown-count {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #9E9E9F;
+}
+.gk-toolbar__dropdown-list {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.gk-toolbar__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    background: transparent;
+    border: 0;
+    color: #353536;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: all 120ms ease;
+}
+.gk-toolbar__dropdown-item:hover {
+    background: #F1EFEA;
+    color: #1A1A1A;
+}
+.gk-toolbar__dropdown-item.is-active {
+    background: #FEECEE;
+    color: #FB2436;
+    font-weight: 800;
+}
+.gk-toolbar__dropdown-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    transition: all 120ms ease;
+}
+.gk-toolbar__dropdown-item.is-active .gk-toolbar__dropdown-dot {
+    background: #FB2436;
+    box-shadow: 0 0 6px rgba(251, 36, 54, 0.6);
+}
+
+.gk-toolbar__view-switch {
+    display: inline-flex;
+    align-items: center;
+    background: #F1EFEA;
+    border-radius: 999px;
+    padding: 2px;
+}
+.gk-toolbar__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 999px;
+    color: #6E6E70;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition: all 120ms ease;
+}
+.gk-toolbar__icon-btn:hover {
+    color: #353536;
+}
+.gk-toolbar__icon-btn.is-active {
+    background: #353536;
+    color: #FAFFFD;
+}
+.gk-toolbar__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #FB2436;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    min-width: 1.1rem;
+    height: 1.1rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    line-height: 1;
+}
+
+/* Hide redundant page actions and duplicate buttons from the main layout */
+body:has(.gk-toolbar.is-ready) .fi-header-actions,
+body:has(.gk-toolbar.is-ready) form[wire\:submit="save"] > div.border-t button[type="submit"],
+body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t button[type="submit"],
+[data-gk-hide-page-actions] .fi-header-actions,
+[data-gk-hide-page-actions] .fi-fo-form-actions {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* Content Grid Cards (e.g. Stories) — Edge-to-Edge Hero Image      */
+/* ---------------------------------------------------------------- */
+.fi-ta-record-grid {
+    gap: 1.5rem !important;
+}
+.fi-ta-record-grid .fi-ta-record {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    position: relative !important;
+    border-radius: 1.5rem !important;
+}
+.fi-ta-record-grid .fi-ta-record .fi-ta-col-wrp {
+    height: 100% !important;
+}
+/* Hide redundant inline action buttons on cards */
+.fi-ta-record-grid .fi-ta-record .fi-ta-actions {
+    display: none !important;
+}
+/* Floating Glassmorphic Checkbox on grid cards */
+.fi-ta-record-grid .fi-ta-record > div:has(input[type="checkbox"]),
+.fi-ta-record-grid .fi-ta-record .fi-ta-record-checkbox-ctn,
+.fi-ta-record-grid .fi-ta-record .fi-ta-record-checkbox {
+    position: absolute !important;
+    top: 1rem !important;
+    left: 1rem !important;
+    z-index: 25 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border-radius: 999px !important;
+    padding: 0.35rem !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* Shared Dialog / Modal Component (Mixamo Info-Panels Style)       */
+/* ---------------------------------------------------------------- */
+.fi-modal-window {
+    background-color: #F8F9FA !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(53, 53, 54, 0.08) !important;
+    box-shadow: 0 32px 72px -16px rgba(53, 53, 54, 0.28), 0 0 0 1px rgba(53, 53, 54, 0.05) !important;
+    overflow: hidden !important;
+}
+.fi-modal-window .fi-modal-header {
+    background: #FFFFFF !important;
+    border-bottom: 1px solid rgba(53, 53, 54, 0.08) !important;
+    padding: 1.25rem 2rem !important;
+}
+.fi-modal-window .fi-modal-heading {
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    color: #353536 !important;
+    letter-spacing: -0.015em !important;
+}
+.fi-modal-window .fi-modal-description {
+    font-size: 0.85rem !important;
+    color: #6E6E70 !important;
+    margin-top: 0.25rem !important;
+}
+.fi-modal-window .fi-modal-content {
+    background-color: #F8F9FA !important;
+    padding: 1.75rem 2rem !important;
+}
+.fi-modal-window .fi-modal-content .fi-section {
+    background: #FFFFFF !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(53, 53, 54, 0.07) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(53, 53, 54, 0.03) !important;
+    overflow: hidden !important;
+    margin-bottom: 1.25rem !important;
+}
+.fi-modal-window .fi-modal-content .fi-section-header {
+    padding: 1.15rem 1.5rem 0.85rem !important;
+    border-bottom: 1px solid rgba(53, 53, 54, 0.06) !important;
+}
+.fi-modal-window .fi-modal-content .fi-section-header-heading {
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #353536 !important;
+}
+.fi-modal-window .fi-modal-content .fi-section-content {
+    padding: 1.5rem !important;
+}
+.fi-modal-window .fi-modal-footer {
+    background: #FFFFFF !important;
+    border-top: 1px solid rgba(53, 53, 54, 0.08) !important;
+    padding: 1.25rem 2rem !important;
+}
+.fi-modal-window .fi-modal-footer .fi-btn {
+    border-radius: 999px !important;
+    font-weight: 700 !important;
+    padding: 0.6rem 1.6rem !important;
+    font-size: 0.88rem !important;
+}
+.fi-modal-window .fi-modal-footer .fi-btn-primary {
+    background-color: #FB2436 !important;
+    color: #ffffff !important;
+}
+.fi-modal-window .fi-modal-footer .fi-btn-primary:hover {
+    background-color: #C4101F !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* Grid View mode for Filament tables                               */
+/* Activated by toggling view mode to 'grid' on the floating bar    */
+/* ---------------------------------------------------------------- */
+.fi-ta-content.gk-table-grid table,
+.fi-ta-ctn.gk-table-grid table {
+    display: block !important;
+    width: 100% !important;
+}
+.fi-ta-content.gk-table-grid thead,
+.fi-ta-ctn.gk-table-grid thead {
+    display: none !important;
+}
+.fi-ta-content.gk-table-grid tbody,
+.fi-ta-ctn.gk-table-grid tbody {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: 1.25rem !important;
+    padding: 1.25rem !important;
+    background: #F1EFEA !important;
+    border-radius: 1rem !important;
+}
+.fi-ta-content.gk-table-grid tbody tr,
+.fi-ta-ctn.gk-table-grid tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #ffffff !important;
+    border-radius: 1.25rem !important;
+    padding: 1.25rem !important;
+    box-shadow: 0 4px 16px -2px rgba(53, 53, 54, 0.07) !important;
+    border: 1px solid rgba(53, 53, 54, 0.08) !important;
+    transition: transform 180ms ease, box-shadow 180ms ease !important;
+    position: relative !important;
+}
+.fi-ta-content.gk-table-grid tbody tr:hover,
+.fi-ta-ctn.gk-table-grid tbody tr:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 24px -4px rgba(53, 53, 54, 0.12) !important;
+}
+.fi-ta-content.gk-table-grid tbody tr td,
+.fi-ta-ctn.gk-table-grid tbody tr td {
+    display: block !important;
+    padding: 0.35rem 0 !important;
+    border: 0 !important;
+}
+.fi-ta-content.gk-table-grid tbody tr td:has(input[type="checkbox"]) {
+    position: absolute !important;
+    top: 0.75rem !important;
+    right: 0.75rem !important;
+    padding: 0 !important;
+}
+.fi-ta-content.gk-table-grid tbody tr td:last-child {
+    margin-top: auto !important;
+    padding-top: 0.75rem !important;
+    border-top: 1px solid rgba(53, 53, 54, 0.06) !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* Uploads (FilePond)                                               */
+/* Bigger, warmer drop zones. Brand-red drag-over. Grid of image    */
+/* thumbs for galleries. Works for both new uploads and previews of */
+/* already-configured seed images.                                  */
+/* ---------------------------------------------------------------- */
+
+/* Base drop zone panel - remove Filament outer container border/ring clash */
+.fi-fo-file-upload,
+.fi-fo-file-upload > div,
+.fi-fo-file-upload .fi-input-wrp,
+.fi-fo-field-wrp:has(.filepond--root) .fi-input-wrp,
+.fi-fo-field-wrp:has(.gk-uploader) .fi-input-wrp {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-width: 0px !important;
+    outline: none !important;
+    padding: 0 !important;
+}
+
+.fi-fo-file-upload .filepond--root,
+.gk-uploader .filepond--root,
+.filepond--root {
+    border: none !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-width: 0px !important;
+    background: transparent !important;
+    margin-bottom: 0 !important;
+    font-family: 'Lato', system-ui, sans-serif;
+}
+
+.gk-uploader .filepond--panel-root,
+.fi-fo-file-upload .filepond--panel-root {
+    background: linear-gradient(180deg, #FAFFFD 0%, #F5F4F0 100%) !important;
+    border: 2px dashed #DCD9D2 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+    transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
+    min-height: 180px;
+}
+
+/* Hover + drag-over — pull the eye */
+.gk-uploader:hover .filepond--panel-root,
+.fi-fo-file-upload:hover .filepond--panel-root {
+    border-color: rgba(251, 36, 54, 0.45) !important;
+}
+.gk-uploader .filepond--hopper[data-hopper-state="drag-over"] .filepond--panel-root,
+.gk-uploader .filepond--drop-label--drag-over ~ .filepond--panel-root {
+    border-color: #FB2436;
+    background: linear-gradient(180deg, #FDD3D7 0%, #FAFFFD 100%);
+    transform: scale(1.01);
+}
+
+/* Idle label — bigger, clearer, with a cloud-upload icon rendered
+   via a stacked pseudo-element (no extra HTML needed). */
+.gk-uploader .filepond--drop-label {
+    color: #6E6E70;
+    font-size: 0.92rem;
+    padding: 3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+.gk-uploader .filepond--drop-label label {
+    text-align: center;
+    display: block;
+}
+.gk-uploader .filepond--drop-label label::before {
+    content: '';
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 0.9rem;
+    background: no-repeat center / contain
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23FB2436" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>');
+    opacity: 0.9;
+}
+.gk-uploader .filepond--label-action {
+    color: #FB2436;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+.gk-uploader .filepond--label-action:hover {
+    color: #C4101F;
+}
+
+/* Progress bar in brand red */
+.gk-uploader .filepond--file-status-sub .filepond--action-abort-item-processing,
+.gk-uploader .filepond--file-info-sub {
+    color: #FAFFFD;
+}
+.gk-uploader [data-filepond-item-state="processing"] .filepond--file-status,
+.gk-uploader .filepond--progress-indicator {
+    color: #FB2436;
+}
+
+/* Previews — rounded, subtle border, hover lift */
+.gk-uploader .filepond--item {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(53, 53, 54, 0.06);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.gk-uploader .filepond--item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(53, 53, 54, 0.12);
+}
+.gk-uploader .filepond--file {
+    background: #353536;
+    color: #FAFFFD;
+    padding: 0.6rem 0.75rem;
+}
+.gk-uploader .filepond--file-info-main {
+    color: #FAFFFD;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+.gk-uploader .filepond--file-info-sub {
+    color: rgba(250, 255, 253, 0.7);
+    font-size: 0.7rem;
+}
+
+/* Gallery variant — bigger grid tiles */
+.gk-uploader--gallery .filepond--list-scroller {
+    padding: 0.75rem;
+}
+.gk-uploader--gallery .filepond--item {
+    width: calc(33.333% - 0.75rem);
+    margin: 0.375rem;
+    aspect-ratio: 4 / 3;
+    height: auto !important;
+}
+@media (max-width: 900px) {
+    .gk-uploader--gallery .filepond--item { width: calc(50% - 0.75rem); }
+}
+@media (max-width: 600px) {
+    .gk-uploader--gallery .filepond--item { width: calc(100% - 0.75rem); }
+}
+.gk-uploader--gallery .filepond--image-preview-wrapper {
+    height: 100%;
+}
+.gk-uploader--gallery .filepond--image-preview {
+    height: 100%;
+    background: #F1EFEA;
+}
+
+/* Existing-file badge — a subtle pill so admins know these are
+ * already-configured images (not fresh uploads). */
+.gk-uploader .filepond--item[data-filepond-item-state="processing-complete"] .filepond--file-info-main::after {
+    content: 'On file';
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Buttons overlay — Open / Download / Remove */
+.gk-uploader .filepond--file-action-button {
+    background: rgba(53, 53, 54, 0.85);
+    color: #FAFFFD;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.gk-uploader .filepond--file-action-button:hover,
+.gk-uploader .filepond--file-action-button:focus {
+    background: #FB2436;
+    color: #FAFFFD;
+}
+
+/* Edit / Crop icon in filepond item */
+.filepond--edit-icon {
+    pointer-events: auto;
+    margin-inline-end: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 999px;
+    background: #353536;
+    color: #FAFFFD;
+    border: none;
+    cursor: pointer;
+    vertical-align: bottom;
+    transition: background 150ms ease, transform 150ms ease;
+}
+.filepond--edit-icon:hover {
+    background: #FB2436;
+    transform: scale(1.1);
+}
+
+.gk-media-picker img {
+    will-change: transform;
+}
+
+/* ---------------------------------------------------------------- */
+/* Smooth Dashboard Page Transitions & SPA Motion                   */
+/* ---------------------------------------------------------------- */
+
+@keyframes gkPageEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes gkFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Page enter animation for SPA transitions */
+.fi-page,
+.fi-main-ctn > .fi-page,
+main.fi-main > .fi-page {
+    animation: gkPageEnter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: opacity, transform;
+}
+
+/* Tab panels & Table content switch motion */
+[role="tabpanel"],
+.fi-ta-content,
+.fi-fo-field-wrp {
+    animation: gkFadeIn 220ms ease-out both;
+}
+
+/* SPA Progress Bar (Top of screen) */
+#nprogress .bar,
+.fi-progress-bar {
+    background: #FB2436 !important;
+    box-shadow: 0 0 10px rgba(251, 36, 54, 0.7), 0 0 4px rgba(251, 36, 54, 0.9) !important;
+    height: 3px !important;
+}
+
+#nprogress .peg {
+    box-shadow: 0 0 12px #FB2436, 0 0 6px #FB2436 !important;
+}
+
+/* ---------------------------------------------------------------- */
+/* Analytics & Dashboard Widgets                                    */
+/* ---------------------------------------------------------------- */
+
+/* Stats Overview Cards */
+.fi-wi-stats-overview-stat {
+    border-radius: 16px !important;
+    border: 1px solid rgba(53, 53, 54, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+    background: #FFFFFF !important;
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.fi-wi-stats-overview-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(53, 53, 54, 0.08) !important;
+    border-color: rgba(251, 36, 54, 0.25) !important;
+}
+
+.fi-wi-stats-overview-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #FB2436 0%, #C4101F 100%);
+    opacity: 0;
+    transition: opacity 200ms ease;
+}
+
+.fi-wi-stats-overview-stat:hover::before {
+    opacity: 1;
+}
+
+/* Stats values & labels */
+.fi-wi-stats-overview-stat-value {
+    font-weight: 800 !important;
+    font-family: 'Lato', system-ui, sans-serif !important;
+    color: #353536 !important;
+    letter-spacing: -0.02em;
+}
+
+/* Chart Widgets */
+.fi-wi-chart {
+    border-radius: 16px !important;
+    border: 1px solid rgba(53, 53, 54, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+    background: #FFFFFF !important;
+    overflow: hidden;
+    transition: box-shadow 200ms ease;
+}
+
+.fi-wi-chart:hover {
+    box-shadow: 0 4px 20px rgba(53, 53, 54, 0.08) !important;
+}
+
+.fi-wi-chart .fi-section-header {
+    border-bottom: 1px solid rgba(53, 53, 54, 0.06);
+    padding-bottom: 0.75rem;
+}
+
+.fi-wi-chart .fi-section-header-heading {
+    font-weight: 700 !important;
+    color: #353536 !important;
+    font-size: 1.05rem !important;
+}
+
+/* Tables on Dashboard */
+.fi-wi-table {
+    border-radius: 16px !important;
+    border: 1px solid rgba(53, 53, 54, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+    overflow: hidden;
+}
+
