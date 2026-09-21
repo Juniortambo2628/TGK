@@ -12,7 +12,10 @@ class ListRegistrations extends ListRecords
 
     protected static string $resource = RegistrationResource::class;
 
-    protected static ?string $breadcrumbLabel = 'Programme registrations';
+    protected function getBreadcrumbLabel(): ?string
+    {
+        return 'Programme registrations';
+    }
 
     public function getSubheading(): ?string
     {

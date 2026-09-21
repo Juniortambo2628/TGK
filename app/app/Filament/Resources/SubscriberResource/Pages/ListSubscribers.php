@@ -12,7 +12,10 @@ class ListSubscribers extends ListRecords
 
     protected static string $resource = SubscriberResource::class;
 
-    protected static ?string $breadcrumbLabel = 'Newsletter subscribers';
+    protected function getBreadcrumbLabel(): ?string
+    {
+        return 'Newsletter subscribers';
+    }
 
     public function getSubheading(): ?string
     {

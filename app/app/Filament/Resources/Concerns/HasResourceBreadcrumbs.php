@@ -14,15 +14,20 @@ trait HasResourceBreadcrumbs
 {
     /**
      * Optional per-page override, e.g. "Programme registrations" when the
-     * pluralModelLabel is the shorter "Registrations".
+     * pluralModelLabel is the shorter "Registrations". Pages override this
+     * method rather than a shared property (PHP forbids a trait and its
+     * consumer both declaring the same property with different defaults).
      */
-    protected static ?string $breadcrumbLabel = null;
+    protected function getBreadcrumbLabel(): ?string
+    {
+        return null;
+    }
 
     public function getBreadcrumbs(): array
     {
         $resource = static::getResource();
         $group    = $resource::getNavigationGroup();
-        $label    = static::$breadcrumbLabel
+        $label    = $this->getBreadcrumbLabel()
             ?: $resource::getPluralModelLabel()
             ?: $resource::getNavigationLabel();
 
