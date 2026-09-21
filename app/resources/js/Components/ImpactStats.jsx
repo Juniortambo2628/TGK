@@ -40,7 +40,7 @@ export default function ImpactStats({
                     </div>
 
                     <div className="lg:col-span-8">
-                        <div className="grid grid-cols-2 gap-8 lg:gap-12 border-t border-brand-hairline pt-10 lg:pt-12">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-12 border-t border-brand-hairline pt-10 lg:pt-12">
                             {stats.slice(0, 6).map((s, i) => (
                                 <Stat key={s.label + i} value={s.value} label={s.label} description={s.description} />
                             ))}

@@ -226,7 +226,7 @@ export default function Nav() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         transition={{ duration: 0.2 }}
-                        className="xl:hidden bg-brand-off border-t border-brand-hairline"
+                        className="xl:hidden bg-brand-off border-t border-brand-hairline max-h-[calc(100vh-5rem)] overflow-y-auto shadow-2xl"
                     >
                         <nav className="container-page py-4 flex flex-col" aria-label="Mobile">
                             {primary.map((item) => {

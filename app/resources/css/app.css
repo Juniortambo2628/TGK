@@ -18,6 +18,20 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
+    html, body {
+        overflow-x: hidden;
+        max-width: 100vw;
+        width: 100%;
+    }
+
+    img, svg, video, canvas, audio, iframe, embed, object {
+        max-width: 100%;
+    }
+
+    h1, h2, h3, h4, h5, h6, p, a {
+        overflow-wrap: break-word;
+    }
+
     body {
         @apply bg-brand-off text-brand-charcoal font-sans text-body leading-relaxed;
         text-rendering: optimizeLegibility;
@@ -69,7 +83,7 @@
 
 @layer components {
     .btn {
-        @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold tracking-normal transition-all duration-200;
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 sm:px-6 sm:py-3 text-sm font-bold tracking-normal transition-all duration-200 max-w-full;
     }
 
     .hero-text-shadow {
@@ -93,7 +107,7 @@
     }
 
     .container-page {
-        @apply mx-auto w-full max-w-container px-6 md:px-8 lg:px-12;
+        @apply mx-auto w-full max-w-container px-4 sm:px-6 md:px-8 lg:px-12;
     }
 
     .eyebrow {
@@ -102,6 +116,27 @@
 
     .divider {
         @apply h-px w-full bg-brand-hairline;
+    }
+
+    /* Responsive CMS prose media & table formatting */
+    .prose {
+        max-width: 100%;
+    }
+    .prose table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .prose img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 1rem;
+    }
+    .prose iframe {
+        max-width: 100%;
+        aspect-ratio: 16 / 9;
+        height: auto;
     }
 }
 
