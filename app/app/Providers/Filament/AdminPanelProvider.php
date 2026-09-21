@@ -48,7 +48,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->font('Lato', provider: GoogleFontProvider::class)
             ->maxContentWidth(MaxWidth::Full)
-            ->sidebarCollapsibleOnDesktop()
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
+            ->navigationItems([
+                \Filament\Navigation\NavigationItem::make('Profile Settings')
+                    ->url(fn (): string => url('/admin/profile'))
+                    ->icon('heroicon-o-user')
+                    ->group('Settings')
+                    ->sort(0),
+            ])
             ->navigationGroups([
                 NavigationGroup::make('Dashboard')->collapsible(false),
                 NavigationGroup::make('Content')->icon('heroicon-o-document-text'),

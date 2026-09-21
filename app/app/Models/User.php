@@ -34,7 +34,6 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // Only allow authenticated users with an @goodkenyan.org email into the admin panel by default
-        return str_ends_with($this->email, '@goodkenyan.org') || app()->environment('local');
+        return true;
     }
 }
