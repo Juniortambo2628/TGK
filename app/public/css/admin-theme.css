@@ -87,11 +87,15 @@
     border: 1px solid rgba(53, 53, 54, 0.08) !important;
     box-shadow: 0 32px 72px -16px rgba(53, 53, 54, 0.28), 0 0 0 1px rgba(53, 53, 54, 0.05) !important;
     overflow: hidden !important;
+    /* Cap the dialog to the viewport so the header and footer stay put and
+       only the body scrolls (the window is already a flex column). */
+    max-height: calc(100dvh - 5rem) !important;
 }
 .fi-modal-window .fi-modal-header {
     background: #FFFFFF !important;
     border-bottom: 1px solid rgba(53, 53, 54, 0.08) !important;
     padding: 1.25rem 2rem !important;
+    flex-shrink: 0 !important;
 }
 .fi-modal-window .fi-modal-heading {
     font-size: 1.35rem !important;
@@ -107,6 +111,10 @@
 .fi-modal-window .fi-modal-content {
     background-color: #F8F9FA !important;
     padding: 1.75rem 2rem !important;
+    /* Body is the only scrollable region; header/footer stay visible. */
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
 }
 .fi-modal-window .fi-modal-content .fi-section {
     background: #FFFFFF !important;
@@ -134,6 +142,7 @@
     background: #FFFFFF !important;
     border-top: 1px solid rgba(53, 53, 54, 0.08) !important;
     padding: 1.25rem 2rem !important;
+    flex-shrink: 0 !important;
 }
 .fi-modal-window .fi-modal-footer .fi-btn {
     border-radius: 999px !important;
@@ -147,6 +156,14 @@
 }
 .fi-modal-window .fi-modal-footer .fi-btn-primary:hover {
     background-color: #C4101F !important;
+}
+/* While a modal is open, lift the main content column above the sticky
+   sidebar (z-index: 0) so the full-screen overlay/backdrop covers the
+   sidebar too. Scoped to modal-open so it never affects the normal
+   side-by-side layout or the mobile sidebar drawer. */
+.fi-main-ctn:has(.fi-modal-open) {
+    position: relative !important;
+    z-index: 50 !important;
 }
 
 /* ---------------------------------------------------------------- */
@@ -440,28 +457,21 @@
 /* Smooth Dashboard Page Transitions & SPA Motion                   */
 /* ---------------------------------------------------------------- */
 
-@keyframes gkPageEnter {
-    0% {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 @keyframes gkFadeIn {
     0% { opacity: 0; }
     100% { opacity: 1; }
 }
 
-/* Page enter animation for SPA transitions */
+/* Page enter animation for SPA transitions.
+   NOTE: opacity-only on purpose. A retained transform (even translateY(0))
+   or `will-change: transform` on .fi-page makes it the containing block for
+   any `position: fixed` descendant, which would break Filament modal/overlay
+   positioning (they'd centre on the page instead of the viewport). */
 .fi-page,
 .fi-main-ctn > .fi-page,
 main.fi-main > .fi-page {
-    animation: gkPageEnter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: opacity, transform;
+    animation: gkFadeIn 240ms ease-out both;
+    will-change: opacity;
 }
 
 /* Tab panels & Table content switch motion */
