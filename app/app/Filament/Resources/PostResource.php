@@ -80,8 +80,15 @@ class PostResource extends Resource
                                 ->helperText('Upload cover photo. Always covers the card on the site and dashboard.')
                                 ->dehydrated(false)
                                 ->afterStateHydrated(function ($component, $state, $record) {
+                                    // Mirror Post::getHeroUrlAttribute: admin uploads are
+                                    // stored as "uploads/stories/xxx.jpg" and served via
+                                    // /storage; legacy/seeded rows hold just the filename
+                                    // and live under public/images/stories.
                                     if ($record && $record->hero_image) {
-                                        $component->state(['uploads/stories/'.$record->hero_image]);
+                                        $path = str_starts_with($record->hero_image, 'uploads/')
+                                            ? $record->hero_image
+                                            : 'images/stories/'.$record->hero_image;
+                                        $component->state([$path]);
                                     }
                                 }),
                         ]),
@@ -164,14 +171,19 @@ class PostResource extends Resource
 
     protected static function persist(Post $record, array $data): Post
     {
-        // Handle the uploaded hero image: store filename only in DB, in the
-        // canonical /uploads/stories path that PostModel::getHeroUrl resolves.
+        // Handle the uploaded hero image. New uploads arrive as
+        // "uploads/stories/xxx.jpg" (served via /storage). Legacy rows that
+        // weren't re-uploaded round-trip through the form as
+        // "images/stories/xxx.jpg" — normalize those back to the bare filename
+        // so Post::getHeroUrlAttribute keeps resolving them under /images/stories.
         $upload = $data['hero_image_upload'] ?? null;
         if (is_array($upload)) $upload = reset($upload) ?: null;
         if ($upload) {
-            // Store the full "uploads/stories/xxx.jpg" path; Post::getHeroUrl
-            // detects it and serves via /storage/.
-            $data['hero_image'] = ltrim((string) $upload, '/');
+            $upload = ltrim((string) $upload, '/');
+            if (str_starts_with($upload, 'images/stories/')) {
+                $upload = substr($upload, strlen('images/stories/'));
+            }
+            $data['hero_image'] = $upload;
         }
         unset($data['hero_image_upload']);
 

@@ -477,11 +477,15 @@ body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t
     border: 1px solid rgba(53, 53, 54, 0.08) !important;
     box-shadow: 0 32px 72px -16px rgba(53, 53, 54, 0.28), 0 0 0 1px rgba(53, 53, 54, 0.05) !important;
     overflow: hidden !important;
+    max-height: calc(100dvh - 5rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 .fi-modal-window .fi-modal-header {
     background: #FFFFFF !important;
     border-bottom: 1px solid rgba(53, 53, 54, 0.08) !important;
     padding: 1.25rem 2rem !important;
+    flex-shrink: 0 !important;
 }
 .fi-modal-window .fi-modal-heading {
     font-size: 1.35rem !important;
@@ -497,6 +501,9 @@ body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t
 .fi-modal-window .fi-modal-content {
     background-color: #F8F9FA !important;
     padding: 1.75rem 2rem !important;
+    overflow-y: auto !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
 }
 .fi-modal-window .fi-modal-content .fi-section {
     background: #FFFFFF !important;
@@ -524,6 +531,7 @@ body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t
     background: #FFFFFF !important;
     border-top: 1px solid rgba(53, 53, 54, 0.08) !important;
     padding: 1.25rem 2rem !important;
+    flex-shrink: 0 !important;
 }
 .fi-modal-window .fi-modal-footer .fi-btn {
     border-radius: 999px !important;
@@ -1097,28 +1105,20 @@ td:has(> .fi-ta-actions) {
 /* Smooth Dashboard Page Transitions & SPA Motion                   */
 /* ---------------------------------------------------------------- */
 
-@keyframes gkPageEnter {
-    0% {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 @keyframes gkFadeIn {
     0% { opacity: 0; }
     100% { opacity: 1; }
 }
 
-/* Page enter animation for SPA transitions */
+/* Page enter animation for SPA transitions.
+   Opacity-only: a transform (or will-change: transform) on .fi-page would
+   become the containing block for position:fixed descendants, breaking
+   Filament's viewport-fixed modal overlay. */
 .fi-page,
 .fi-main-ctn > .fi-page,
 main.fi-main > .fi-page {
-    animation: gkPageEnter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: opacity, transform;
+    animation: gkFadeIn 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: opacity;
 }
 
 /* Tab panels & Table content switch motion */
@@ -1443,9 +1443,17 @@ body:has(.fi-modal.fi-modal-open) .gk-toolbar {
     border-radius: 20px !important;
 }
 
+/* While a modal is open, lift the content column above the sticky sidebar
+   so the backdrop dims the full viewport (sidebar included). */
+body:has(.fi-modal-open) .fi-main-ctn,
+body:has(.fi-modal-open) main.fi-main {
+    z-index: 40 !important;
+    position: relative !important;
+}
+
 @media (max-width: 640px) {
     .fi-modal-window {
-        max-height: calc(100vh - 2rem) !important;
+        max-height: calc(100dvh - 2rem) !important;
         padding: 1rem !important;
     }
     .fi-modal-header {
