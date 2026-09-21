@@ -598,12 +598,10 @@ body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t
 
 /* ---------------------------------------------------------------- */
 /* Uploads (FilePond)                                               */
-/* Bigger, warmer drop zones. Brand-red drag-over. Grid of image    */
-/* thumbs for galleries. Works for both new uploads and previews of */
-/* already-configured seed images.                                  */
+/* Premium, clean upload zones with polished image previews.        */
 /* ---------------------------------------------------------------- */
 
-/* Base drop zone panel - remove Filament outer container border/ring clash */
+/* ---- Reset: strip all Filament wrapper borders/rings ---- */
 .fi-fo-file-upload,
 .fi-fo-file-upload > div,
 .fi-fo-file-upload .fi-input-wrp,
@@ -632,105 +630,166 @@ body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t
     font-family: 'Lato', system-ui, sans-serif;
 }
 
+/* ---- Drop Zone Panel ---- */
 .gk-uploader .filepond--panel-root,
 .fi-fo-file-upload .filepond--panel-root {
-    background: linear-gradient(180deg, #FAFFFD 0%, #F5F4F0 100%) !important;
-    border: 2px dashed #DCD9D2 !important;
+    background: #FAFAF9 !important;
+    border: 2px dashed rgba(53, 53, 54, 0.15) !important;
     border-radius: 16px !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-    transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
-    min-height: 180px;
+    box-shadow: none !important;
+    transition: border-color 250ms ease, background 250ms ease, box-shadow 250ms ease;
+    min-height: 140px;
 }
 
-/* Hover + drag-over — pull the eye */
+/* Hover */
 .gk-uploader:hover .filepond--panel-root,
 .fi-fo-file-upload:hover .filepond--panel-root {
-    border-color: rgba(251, 36, 54, 0.45) !important;
-}
-.gk-uploader .filepond--hopper[data-hopper-state="drag-over"] .filepond--panel-root,
-.gk-uploader .filepond--drop-label--drag-over ~ .filepond--panel-root {
-    border-color: #FB2436;
-    background: linear-gradient(180deg, #FDD3D7 0%, #FAFFFD 100%);
-    transform: scale(1.01);
+    border-color: rgba(251, 36, 54, 0.35) !important;
+    background: #FEFCFC !important;
+    box-shadow: 0 0 0 4px rgba(251, 36, 54, 0.06) !important;
 }
 
-/* Idle label — bigger, clearer, with a cloud-upload icon rendered
-   via a stacked pseudo-element (no extra HTML needed). */
-.gk-uploader .filepond--drop-label {
-    color: #6E6E70;
-    font-size: 0.92rem;
-    padding: 3rem 1.5rem;
+/* Drag-over */
+.gk-uploader .filepond--hopper[data-hopper-state="drag-over"] .filepond--panel-root,
+.fi-fo-file-upload .filepond--hopper[data-hopper-state="drag-over"] .filepond--panel-root {
+    border-color: #FB2436 !important;
+    background: linear-gradient(180deg, #FFF5F6 0%, #FFFFFF 100%) !important;
+    box-shadow: 0 0 0 4px rgba(251, 36, 54, 0.1) !important;
+}
+
+/* ---- Idle Drop Label ---- */
+.gk-uploader .filepond--drop-label,
+.fi-fo-file-upload .filepond--drop-label {
+    color: #8E8E90;
+    font-size: 0.88rem;
+    padding: 2.5rem 1.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    min-height: 140px;
 }
-.gk-uploader .filepond--drop-label label {
+.gk-uploader .filepond--drop-label label,
+.fi-fo-file-upload .filepond--drop-label label {
     text-align: center;
     display: block;
+    line-height: 1.6;
 }
-.gk-uploader .filepond--drop-label label::before {
+
+/* Cloud upload icon via pseudo-element */
+.gk-uploader .filepond--drop-label label::before,
+.fi-fo-file-upload .filepond--drop-label label::before {
     content: '';
     display: block;
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 0.9rem;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 0.6rem;
     background: no-repeat center / contain
-        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23FB2436" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>');
-    opacity: 0.9;
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23BFBFBF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>');
+    opacity: 1;
+    transition: opacity 200ms ease;
 }
-.gk-uploader .filepond--label-action {
+.gk-uploader:hover .filepond--drop-label label::before,
+.fi-fo-file-upload:hover .filepond--drop-label label::before {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23FB2436" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>');
+}
+
+/* Browse link */
+.gk-uploader .filepond--label-action,
+.fi-fo-file-upload .filepond--label-action {
     color: #FB2436;
     font-weight: 700;
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 3px;
+    text-decoration: none;
+    border-bottom: 2px solid rgba(251, 36, 54, 0.3);
+    padding-bottom: 1px;
     cursor: pointer;
+    transition: border-color 150ms ease, color 150ms ease;
 }
-.gk-uploader .filepond--label-action:hover {
+.gk-uploader .filepond--label-action:hover,
+.fi-fo-file-upload .filepond--label-action:hover {
     color: #C4101F;
+    border-bottom-color: #C4101F;
 }
 
-/* Progress bar in brand red */
-.gk-uploader .filepond--file-status-sub .filepond--action-abort-item-processing,
-.gk-uploader .filepond--file-info-sub {
-    color: #FAFFFD;
-}
-.gk-uploader [data-filepond-item-state="processing"] .filepond--file-status,
-.gk-uploader .filepond--progress-indicator {
-    color: #FB2436;
-}
-
-/* Previews — rounded, subtle border, hover lift */
-.gk-uploader .filepond--item {
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(53, 53, 54, 0.06);
-    transition: transform 180ms ease, box-shadow 180ms ease;
-}
-.gk-uploader .filepond--item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(53, 53, 54, 0.12);
-}
-.gk-uploader .filepond--file {
-    background: #353536;
-    color: #FAFFFD;
-    padding: 0.6rem 0.75rem;
-}
-.gk-uploader .filepond--file-info-main {
-    color: #FAFFFD;
-    font-weight: 700;
-    font-size: 0.8rem;
-}
-.gk-uploader .filepond--file-info-sub {
+/* ---- Upload progress ---- */
+.gk-uploader .filepond--file-info-sub,
+.fi-fo-file-upload .filepond--file-info-sub {
     color: rgba(250, 255, 253, 0.7);
     font-size: 0.7rem;
 }
+.gk-uploader [data-filepond-item-state="processing"] .filepond--file-status,
+.gk-uploader .filepond--progress-indicator,
+.fi-fo-file-upload [data-filepond-item-state="processing"] .filepond--file-status,
+.fi-fo-file-upload .filepond--progress-indicator {
+    color: #FB2436;
+}
 
-/* Gallery variant — bigger grid tiles */
+/* ---- Individual Item Previews ---- */
+.gk-uploader .filepond--item,
+.fi-fo-file-upload .filepond--item {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    background: #ffffff;
+}
+.gk-uploader .filepond--item:hover,
+.fi-fo-file-upload .filepond--item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+/* File info bar at bottom of each preview */
+.gk-uploader .filepond--file,
+.fi-fo-file-upload .filepond--file {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
+    color: #FFFFFF;
+    padding: 0.55rem 0.65rem;
+    border-radius: 0 0 14px 14px;
+}
+.gk-uploader .filepond--file-info-main,
+.fi-fo-file-upload .filepond--file-info-main {
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Image preview wrapper — proper sizing */
+.gk-uploader .filepond--image-preview-wrapper,
+.fi-fo-file-upload .filepond--image-preview-wrapper {
+    border-radius: 14px;
+}
+.gk-uploader .filepond--image-preview,
+.fi-fo-file-upload .filepond--image-preview {
+    background: #F5F5F4;
+}
+
+/* ---- Action Buttons (Remove / Open / Download / Edit) ---- */
+.gk-uploader .filepond--file-action-button,
+.fi-fo-file-upload .filepond--file-action-button {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #353536 !important;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+.gk-uploader .filepond--file-action-button:hover,
+.gk-uploader .filepond--file-action-button:focus,
+.fi-fo-file-upload .filepond--file-action-button:hover,
+.fi-fo-file-upload .filepond--file-action-button:focus {
+    background: #FB2436 !important;
+    color: #FFFFFF !important;
+    transform: scale(1.08);
+}
+
+/* ---- Gallery / Multi-Image Grid Layout ---- */
 .gk-uploader--gallery .filepond--list-scroller {
-    padding: 0.75rem;
+    padding: 0.5rem;
 }
 .gk-uploader--gallery .filepond--item {
     width: calc(33.333% - 0.75rem);
@@ -749,57 +808,39 @@ body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t
 }
 .gk-uploader--gallery .filepond--image-preview {
     height: 100%;
-    background: #F1EFEA;
+    background: #F5F5F4;
 }
 
-/* Existing-file badge — a subtle pill so admins know these are
- * already-configured images (not fresh uploads). */
-.gk-uploader .filepond--item[data-filepond-item-state="processing-complete"] .filepond--file-info-main::after {
-    content: 'On file';
+/* ---- "On file" badge for already-configured images ---- */
+.gk-uploader .filepond--item[data-filepond-item-state="processing-complete"] .filepond--file-info-main::after,
+.fi-fo-file-upload .filepond--item[data-filepond-item-state="processing-complete"] .filepond--file-info-main::after {
+    content: '✓ Saved';
     display: inline-block;
-    margin-left: 0.5rem;
-    padding: 0.1rem 0.5rem;
-    background: rgba(255, 255, 255, 0.15);
+    margin-left: 0.45rem;
+    padding: 0.1rem 0.45rem;
+    background: rgba(16, 185, 129, 0.25);
+    color: #ECFDF5;
     border-radius: 999px;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
+    vertical-align: middle;
 }
 
-/* Buttons overlay — Open / Download / Remove */
-.gk-uploader .filepond--file-action-button {
-    background: rgba(53, 53, 54, 0.85);
-    color: #FAFFFD;
-    border-radius: 999px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+/* ---- Edit icon (for image editor trigger) ---- */
+.filepond--action-edit-item {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(6px);
+    color: #353536 !important;
+    border-radius: 999px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+    transition: all 150ms ease;
 }
-.gk-uploader .filepond--file-action-button:hover,
-.gk-uploader .filepond--file-action-button:focus {
-    background: #FB2436;
-    color: #FAFFFD;
-}
-
-/* Edit / Crop icon in filepond item */
-.filepond--edit-icon {
-    pointer-events: auto;
-    margin-inline-end: 0.35rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.35rem;
-    height: 1.35rem;
-    border-radius: 999px;
-    background: #353536;
-    color: #FAFFFD;
-    border: none;
-    cursor: pointer;
-    vertical-align: bottom;
-    transition: background 150ms ease, transform 150ms ease;
-}
-.filepond--edit-icon:hover {
-    background: #FB2436;
-    transform: scale(1.1);
+.filepond--action-edit-item:hover {
+    background: #FB2436 !important;
+    color: #ffffff !important;
+    transform: scale(1.08);
 }
 
 .gk-media-picker img {
