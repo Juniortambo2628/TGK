@@ -305,11 +305,21 @@
                 }
 
                 // ---- Filters trigger
-                const filterBtn = document.querySelector('.fi-ta-filter-trigger, .fi-ta-filters-trigger, button[aria-label*="Filter" i], [data-table-filter-trigger]');
+                const filterBtn = document.querySelector(
+                    '.fi-ta-filters-dropdown button, ' +
+                    '.fi-ta-filters-modal button, ' +
+                    '.fi-ta-filters-dialog button, ' +
+                    '.fi-ta-filter-trigger, ' +
+                    '.fi-ta-filters-trigger, ' +
+                    '.fi-ta-header-toolbar button:has(svg), ' +
+                    'button[aria-label*="Filter" i], ' +
+                    '[data-table-filter-trigger]'
+                );
                 this.hasFilter = !!filterBtn;
                 this._filterRef = filterBtn;
-                const filterBadge = filterBtn?.querySelector('.fi-badge, [class*="badge"]');
-                this.activeFilterCount = filterBadge ? parseInt(filterBadge.textContent.trim(), 10) || 1 : 0;
+                const filterBadge = filterBtn?.querySelector('.fi-badge, [class*="badge"], span') ||
+                    document.querySelector('.fi-ta-filters-dropdown .fi-badge, .fi-ta-filters-modal .fi-badge');
+                this.activeFilterCount = filterBadge ? parseInt(filterBadge.textContent.trim(), 10) || 0 : 0;
 
                 // ---- Filament tabs
                 const tabButtons = [...document.querySelectorAll('[role="tablist"] [role="tab"]')];
