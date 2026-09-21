@@ -222,20 +222,27 @@
             init() {
                 this._scanning = false;
                 this._scheduled = false;
+                this._morphing = false;
                 this.scan();
 
                 const schedule = () => {
-                    if (this._scheduled || this._scanning) return;
+                    if (this._scheduled || this._scanning || this._morphing) return;
                     this._scheduled = true;
-                    requestAnimationFrame(() => {
+                    // Use setTimeout(0) to defer until AFTER Livewire's morph
+                    // completes — requestAnimationFrame fires too early and
+                    // hits nodes that haven't been mounted yet.
+                    setTimeout(() => {
                         this._scheduled = false;
+                        if (this._morphing) return; // skip if another morph started
                         this._scanning = true;
                         try { this.scan(); }
+                        catch(e) { /* swallow DOM-state errors during transitions */ }
                         finally { this._scanning = false; }
-                    });
+                    }, 0);
                 };
 
                 this._obs = new MutationObserver((entries) => {
+                    if (this._morphing) return;
                     const isSelf = entries.every(e => e.target && (e.target.closest?.('.gk-toolbar')));
                     if (isSelf) return;
                     schedule();
@@ -252,9 +259,21 @@
                     }
                 });
 
-                document.addEventListener('livewire:navigated', schedule);
+                // Pause scanning while Livewire is morphing the DOM
+                document.addEventListener('livewire:morph', () => { this._morphing = true; });
+                document.addEventListener('livewire:morphed', () => {
+                    this._morphing = false;
+                    schedule();
+                });
+
+                document.addEventListener('livewire:navigated', () => {
+                    this._morphing = false;
+                    schedule();
+                });
+                document.addEventListener('livewire:navigating', () => {
+                    this._morphing = true;
+                });
                 document.addEventListener('livewire:load', schedule);
-                document.addEventListener('livewire:navigating', () => this._obs?.disconnect(), { once: true });
                 this.ready = true;
             },
 
