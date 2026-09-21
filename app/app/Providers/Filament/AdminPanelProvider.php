@@ -58,11 +58,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 NavigationGroup::make('Dashboard')->collapsible(false),
-                NavigationGroup::make('Content')->icon('heroicon-o-document-text'),
-                NavigationGroup::make('Blog')->icon('heroicon-o-newspaper'),
-                NavigationGroup::make('People')->icon('heroicon-o-user-group'),
-                NavigationGroup::make('Submissions')->icon('heroicon-o-inbox-arrow-down'),
-                NavigationGroup::make('Settings')->icon('heroicon-o-cog-6-tooth')->collapsed(),
+                NavigationGroup::make('Content'),
+                NavigationGroup::make('Blog'),
+                NavigationGroup::make('People'),
+                NavigationGroup::make('Submissions'),
+                NavigationGroup::make('Settings')->collapsed(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
