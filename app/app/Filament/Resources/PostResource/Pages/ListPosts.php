@@ -3,16 +3,14 @@
 namespace App\Filament\Resources\PostResource\Pages;
 
 use App\Filament\Resources\PostResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Resources\Pages\ListRecords;
 
 class ListPosts extends ListRecords
 {
-    protected static string $resource = PostResource::class;
+    use HasResourceBreadcrumbs;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'Blog', 'Stories'];
-    }
+    protected static string $resource = PostResource::class;
 
     public function getSubheading(): ?string
     {

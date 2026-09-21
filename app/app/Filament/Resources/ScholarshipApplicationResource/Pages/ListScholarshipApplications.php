@@ -3,16 +3,14 @@
 namespace App\Filament\Resources\ScholarshipApplicationResource\Pages;
 
 use App\Filament\Resources\ScholarshipApplicationResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Resources\Pages\ListRecords;
 
 class ListScholarshipApplications extends ListRecords
 {
-    protected static string $resource = ScholarshipApplicationResource::class;
+    use HasResourceBreadcrumbs;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'Submissions', 'Scholarship enquiries'];
-    }
+    protected static string $resource = ScholarshipApplicationResource::class;
 
     public function getSubheading(): ?string
     {

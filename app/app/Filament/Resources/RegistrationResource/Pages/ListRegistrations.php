@@ -3,16 +3,16 @@
 namespace App\Filament\Resources\RegistrationResource\Pages;
 
 use App\Filament\Resources\RegistrationResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Resources\Pages\ListRecords;
 
 class ListRegistrations extends ListRecords
 {
+    use HasResourceBreadcrumbs;
+
     protected static string $resource = RegistrationResource::class;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'Submissions', 'Programme registrations'];
-    }
+    protected static ?string $breadcrumbLabel = 'Programme registrations';
 
     public function getSubheading(): ?string
     {

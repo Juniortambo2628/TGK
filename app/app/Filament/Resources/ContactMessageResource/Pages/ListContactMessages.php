@@ -3,16 +3,14 @@
 namespace App\Filament\Resources\ContactMessageResource\Pages;
 
 use App\Filament\Resources\ContactMessageResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Resources\Pages\ListRecords;
 
 class ListContactMessages extends ListRecords
 {
-    protected static string $resource = ContactMessageResource::class;
+    use HasResourceBreadcrumbs;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'Submissions', 'Contact messages'];
-    }
+    protected static string $resource = ContactMessageResource::class;
 
     public function getSubheading(): ?string
     {

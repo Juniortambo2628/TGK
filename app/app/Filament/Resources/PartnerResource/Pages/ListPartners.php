@@ -3,16 +3,14 @@
 namespace App\Filament\Resources\PartnerResource\Pages;
 
 use App\Filament\Resources\PartnerResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Resources\Pages\ListRecords;
 
 class ListPartners extends ListRecords
 {
-    protected static string $resource = PartnerResource::class;
+    use HasResourceBreadcrumbs;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'People', 'Partners'];
-    }
+    protected static string $resource = PartnerResource::class;
 
     public function getSubheading(): ?string
     {

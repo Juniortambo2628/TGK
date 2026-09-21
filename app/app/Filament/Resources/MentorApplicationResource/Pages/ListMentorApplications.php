@@ -3,16 +3,14 @@
 namespace App\Filament\Resources\MentorApplicationResource\Pages;
 
 use App\Filament\Resources\MentorApplicationResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Resources\Pages\ListRecords;
 
 class ListMentorApplications extends ListRecords
 {
-    protected static string $resource = MentorApplicationResource::class;
+    use HasResourceBreadcrumbs;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'Submissions', 'Mentor applications'];
-    }
+    protected static string $resource = MentorApplicationResource::class;
 
     public function getSubheading(): ?string
     {

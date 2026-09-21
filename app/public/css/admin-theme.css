@@ -975,10 +975,13 @@ td:has(> .fi-ta-actions) {
     transition: transform 200ms ease, box-shadow 200ms ease !important;
     background: #ffffff !important;
 }
+/* Hover lift uses filter (not transform) — FilePond's reorder engine relies
+   on transform on .filepond--item to track drag position, and any hover
+   transform we add races with it and starts a spurious drag on hover. */
 .gk-uploader .filepond--item:hover,
 .fi-fo-file-upload .filepond--item:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.14));
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* Ensure item panels are also transparent (FilePond clones panels per item) */
@@ -1443,16 +1446,24 @@ body:has(.fi-modal.fi-modal-open) .gk-toolbar {
     border-radius: 20px !important;
 }
 
-/* While a modal is open, keep the sticky sidebar and topbar behind the
-   modal overlay so the backdrop dims the full viewport. The modal itself
-   is position:fixed with Filament's own high z-index; we only need the
-   chrome around it to stay underneath. */
+/* While any Filament overlay is open (dialog modal OR the FilePond image
+   editor), keep the sticky sidebar and topbar behind it so the backdrop
+   dims the full viewport. The overlay itself is position:fixed with its
+   own z-index; we only need the chrome around it to stay underneath. */
 body:has(.fi-modal-open) .fi-sidebar,
-body:has(.fi-modal-open) .fi-topbar {
+body:has(.fi-modal-open) .fi-topbar,
+body:has(.fi-fo-file-upload [x-show="isEditorOpen"]:not([style*="display: none"])) .fi-sidebar,
+body:has(.fi-fo-file-upload [x-show="isEditorOpen"]:not([style*="display: none"])) .fi-topbar {
     z-index: 0 !important;
 }
 body:has(.fi-modal-open) .fi-modal,
 body:has(.fi-modal-open) .fi-modal-window {
+    z-index: 100 !important;
+}
+/* Lift the FilePond image editor overlay above every piece of chrome.
+   Filament ships it at z-50; the sticky sidebar/topbar can compete on some
+   layouts, so we pin it explicitly. */
+.fi-fo-file-upload > [x-show="isEditorOpen"] {
     z-index: 100 !important;
 }
 

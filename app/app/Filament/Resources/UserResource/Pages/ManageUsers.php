@@ -3,17 +3,15 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
 
 class ManageUsers extends ManageRecords
 {
-    protected static string $resource = UserResource::class;
+    use HasResourceBreadcrumbs;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'Settings', 'User Accounts'];
-    }
+    protected static string $resource = UserResource::class;
 
     protected function getHeaderActions(): array
     {

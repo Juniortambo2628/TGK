@@ -3,16 +3,16 @@
 namespace App\Filament\Resources\SubscriberResource\Pages;
 
 use App\Filament\Resources\SubscriberResource;
+use App\Filament\Resources\Concerns\HasResourceBreadcrumbs;
 use Filament\Resources\Pages\ListRecords;
 
 class ListSubscribers extends ListRecords
 {
+    use HasResourceBreadcrumbs;
+
     protected static string $resource = SubscriberResource::class;
 
-    public function getBreadcrumbs(): array
-    {
-        return [url('/admin') => 'Dashboard', '#' => 'Submissions', 'Newsletter subscribers'];
-    }
+    protected static ?string $breadcrumbLabel = 'Newsletter subscribers';
 
     public function getSubheading(): ?string
     {
