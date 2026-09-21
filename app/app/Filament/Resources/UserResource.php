@@ -105,12 +105,6 @@ class UserResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->recordAction('edit')
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->modalHeading('Create User Account')
-                    ->modalWidth('5xl')
-                    ->successNotificationTitle('User Account Created'),
-            ])
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->modalHeading('Edit User Account')

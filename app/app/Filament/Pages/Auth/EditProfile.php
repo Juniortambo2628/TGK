@@ -25,6 +25,25 @@ class EditProfile extends BaseEditProfile
         return 'Profile Settings';
     }
 
+    public function getTitle(): string
+    {
+        return 'Profile Settings';
+    }
+
+    public function getHeading(): string
+    {
+        return 'Profile Settings';
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            url('/admin') => 'Dashboard',
+            '#'           => 'Settings',
+            'Profile Settings',
+        ];
+    }
+
     public function form(Form $form): Form
     {
         return $form

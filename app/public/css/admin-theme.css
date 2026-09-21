@@ -1443,12 +1443,17 @@ body:has(.fi-modal.fi-modal-open) .gk-toolbar {
     border-radius: 20px !important;
 }
 
-/* While a modal is open, lift the content column above the sticky sidebar
-   so the backdrop dims the full viewport (sidebar included). */
-body:has(.fi-modal-open) .fi-main-ctn,
-body:has(.fi-modal-open) main.fi-main {
-    z-index: 40 !important;
-    position: relative !important;
+/* While a modal is open, keep the sticky sidebar and topbar behind the
+   modal overlay so the backdrop dims the full viewport. The modal itself
+   is position:fixed with Filament's own high z-index; we only need the
+   chrome around it to stay underneath. */
+body:has(.fi-modal-open) .fi-sidebar,
+body:has(.fi-modal-open) .fi-topbar {
+    z-index: 0 !important;
+}
+body:has(.fi-modal-open) .fi-modal,
+body:has(.fi-modal-open) .fi-modal-window {
+    z-index: 100 !important;
 }
 
 @media (max-width: 640px) {

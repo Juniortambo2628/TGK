@@ -48,7 +48,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->font('Lato', provider: GoogleFontProvider::class)
             ->maxContentWidth(MaxWidth::Full)
-            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class, isSimple: false)
             ->navigationItems([
                 \Filament\Navigation\NavigationItem::make('Profile Settings')
                     ->url(fn (): string => url('/admin/profile'))

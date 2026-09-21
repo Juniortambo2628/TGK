@@ -10,12 +10,19 @@ class ManageUsers extends ManageRecords
 {
     protected static string $resource = UserResource::class;
 
+    public function getBreadcrumbs(): array
+    {
+        return [url('/admin') => 'Dashboard', '#' => 'Settings', 'User Accounts'];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make()
+                ->label('New User Account')
                 ->modalHeading('Create User Account')
-                ->modalWidth('5xl'),
+                ->modalWidth('5xl')
+                ->successNotificationTitle('User Account Created'),
         ];
     }
 }
