@@ -48,6 +48,11 @@
 
         {{-- Card footer matching landing page --}}
         <div class="gk-story-card__footer">
+            <span class="gk-story-card__list-badge {{ $isPublished ? 'is-published' : 'is-draft' }}">
+                <span class="gk-story-card__badge-dot"></span>
+                {{ $isPublished ? 'Published' : 'Draft' }}
+            </span>
+
             <time class="gk-story-card__date">
                 {{ $record->published_at ? $record->published_at->format('d M Y') : 'Draft' }}
             </time>

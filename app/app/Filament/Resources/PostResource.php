@@ -111,6 +111,7 @@ class PostResource extends Resource
             ->contentGrid([
                 'default' => 1,
                 'md' => 2,
+                'lg' => 3,
                 'xl' => 3,
             ])
             ->columns([

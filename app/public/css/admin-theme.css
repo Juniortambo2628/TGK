@@ -586,9 +586,7 @@ body:has(.gk-toolbar.is-ready) form[wire\:submit\.prevent="save"] > div.border-t
 .fi-ta-actions-header,
 th.fi-ta-actions-header,
 td.fi-ta-actions-cell,
-td:has(> .fi-ta-actions),
-.fi-ta-content.gk-table-grid tbody tr td:has(button[wire\:click*="mountTableAction"]),
-.fi-ta-content.gk-table-grid tbody tr td:last-child:has(button, a) {
+td:has(> .fi-ta-actions) {
     position: absolute !important;
     width: 1px !important;
     height: 1px !important;
@@ -633,50 +631,58 @@ td:has(> .fi-ta-actions),
     display: none !important;
 }
 
-/* Grid layout for cards */
+/* Grid layout for cards — 3 columns on desktop */
 .fi-ta-content.gk-table-grid tbody,
 .fi-ta-ctn.gk-table-grid tbody {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
-    gap: 1.25rem !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 1.15rem !important;
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
     border-radius: 0 !important;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
     .fi-ta-content.gk-table-grid tbody,
     .fi-ta-ctn.gk-table-grid tbody {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 1rem !important;
     }
 }
 
-/* Modern Card Design */
+@media (max-width: 640px) {
+    .fi-ta-content.gk-table-grid tbody,
+    .fi-ta-ctn.gk-table-grid tbody {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+    }
+}
+
+/* Modern Compact Card Design */
 .fi-ta-content.gk-table-grid tbody tr,
 .fi-ta-ctn.gk-table-grid tbody tr {
     display: flex !important;
     flex-direction: column !important;
     background: #ffffff !important;
-    border-radius: 1.25rem !important;
-    padding: 1.35rem 1.45rem !important;
+    border-radius: 1.15rem !important;
+    padding: 1.05rem 1.15rem !important;
     box-shadow:
         0 1px 3px rgba(53, 53, 54, 0.04),
-        0 6px 20px -2px rgba(53, 53, 54, 0.06) !important;
+        0 4px 14px -2px rgba(53, 53, 54, 0.05) !important;
     border: 1px solid rgba(53, 53, 54, 0.08) !important;
     transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease !important;
     position: relative !important;
     cursor: pointer !important;
-    gap: 0.6rem !important;
+    gap: 0.45rem !important;
 }
 
 .fi-ta-content.gk-table-grid tbody tr:hover,
 .fi-ta-ctn.gk-table-grid tbody tr:hover {
-    transform: translateY(-3px) !important;
+    transform: translateY(-2px) !important;
     box-shadow:
-        0 4px 12px rgba(53, 53, 54, 0.06),
-        0 16px 36px -4px rgba(53, 53, 54, 0.12) !important;
+        0 4px 12px rgba(53, 53, 54, 0.05),
+        0 12px 28px -4px rgba(53, 53, 54, 0.1) !important;
     border-color: rgba(251, 36, 54, 0.28) !important;
 }
 
@@ -1504,7 +1510,21 @@ body:has(.fi-modal.fi-modal-open) .gk-toolbar {
 /* Story Cards & Content Grid (matches landing page cards exactly)  */
 /* ---------------------------------------------------------------- */
 .fi-ta-content-grid {
-    gap: 1.5rem !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 1.25rem !important;
+}
+@media (max-width: 1024px) {
+    .fi-ta-content-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+}
+@media (max-width: 640px) {
+    .fi-ta-content-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+    }
 }
 .fi-ta-content-grid .fi-ta-record {
     background: transparent !important;
@@ -1671,8 +1691,140 @@ body:has(.fi-modal.fi-modal-open) .gk-toolbar {
     gap: 0.25rem;
     transition: transform 180ms ease;
 }
+.gk-story-card__list-badge {
+    display: none;
+}
 .gk-story-card:hover .gk-story-card__action {
     transform: translateX(3px);
+}
+
+/* ---------------------------------------------------------------- */
+/* Story Cards in List View Mode (Compact row with thumbnail image) */
+/* ---------------------------------------------------------------- */
+.fi-ta-ctn.gk-table-list .fi-ta-content-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+}
+.fi-ta-ctn.gk-table-list .fi-ta-content-grid .fi-ta-record {
+    width: 100% !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card {
+    flex-direction: row !important;
+    align-items: center !important;
+    height: auto !important;
+    min-height: 60px !important;
+    border-radius: 0.85rem !important;
+    padding: 0.45rem 0.85rem !important;
+    gap: 1rem !important;
+    box-shadow: 0 1px 2px rgba(53, 53, 54, 0.03) !important;
+    border: 1px solid rgba(53, 53, 54, 0.08) !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 10px rgba(53, 53, 54, 0.06) !important;
+    border-color: rgba(251, 36, 54, 0.25) !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__media {
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 0.5rem !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__media-placeholder {
+    width: 50px !important;
+    height: 50px !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__media-placeholder svg {
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__media-placeholder span {
+    display: none !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__badge {
+    display: none !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__body {
+    padding: 0 !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 0.15rem !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__eyebrow {
+    display: none !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__title {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 380px !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__excerpt {
+    font-size: 0.78rem !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+    color: #8E8E93 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 500px !important;
+    display: block !important;
+    -webkit-line-clamp: 1 !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__footer {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-top: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.85rem !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__list-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    padding: 0.15rem 0.55rem !important;
+    border-radius: 999px !important;
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.02em !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__list-badge.is-published {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #059669 !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__list-badge.is-published .gk-story-card__badge-dot {
+    background: #059669 !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__list-badge.is-draft {
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #D97706 !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__list-badge.is-draft .gk-story-card__badge-dot {
+    background: #D97706 !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__date {
+    font-size: 0.72rem !important;
+    color: #8E8E93 !important;
+    white-space: nowrap !important;
+}
+.fi-ta-ctn.gk-table-list .gk-story-card__action {
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
 }
 
 
