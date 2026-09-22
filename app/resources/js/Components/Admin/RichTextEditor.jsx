@@ -157,6 +157,8 @@ export default function RichTextEditor({ value = '', onChange, error, placeholde
         extensions: [
             StarterKit.configure({
                 heading: { levels: [2, 3, 4] },
+                link: false,
+                underline: false,
             }),
             Link.configure({
                 openOnClick: false,
