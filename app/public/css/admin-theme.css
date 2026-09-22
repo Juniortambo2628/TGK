@@ -1116,12 +1116,14 @@ td:has(> .fi-ta-actions) {
 /* Page enter animation for SPA transitions.
    Opacity-only: a transform (or will-change: transform) on .fi-page would
    become the containing block for position:fixed descendants, breaking
-   Filament's viewport-fixed modal overlay. */
+   Filament's viewport-fixed modal overlay.
+   IMPORTANT: will-change also creates a stacking context, which would trap
+   the modal's z-index inside .fi-page while the sidebar sits outside it.
+   We avoid will-change entirely and rely on the animation shorthand. */
 .fi-page,
 .fi-main-ctn > .fi-page,
 main.fi-main > .fi-page {
     animation: gkFadeIn 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: opacity;
 }
 
 /* Tab panels & Table content switch motion */
@@ -1446,6 +1448,16 @@ body:has(.fi-modal.fi-modal-open) .gk-toolbar {
     border-radius: 20px !important;
 }
 
+/* ---------------------------------------------------------------- */
+/* Modal z-index: Always ensure modals render above sidebar/topbar   */
+/* ---------------------------------------------------------------- */
+aside.fi-sidebar {
+    z-index: 20 !important;
+}
+.fi-topbar {
+    z-index: 25 !important;
+}
+
 /* While any Filament overlay is open (dialog modal OR the FilePond image
    editor), keep the sticky sidebar and topbar behind it so the backdrop
    dims the full viewport. The overlay itself is position:fixed with its
@@ -1465,6 +1477,15 @@ body:has(.fi-modal-open) .fi-modal-window {
    layouts, so we pin it explicitly. */
 .fi-fo-file-upload > [x-show="isEditorOpen"] {
     z-index: 100 !important;
+}
+/* Backup: target modals directly in case :has() fails */
+.fi-modal-overlay,
+.fi-modal-window,
+.fi-modal {
+    z-index: 100 !important;
+}
+.fi-modal-overlay {
+    z-index: 99 !important;
 }
 
 @media (max-width: 640px) {

@@ -88,8 +88,8 @@ export default function About() {
             </TwoColumnFeature>
 
             <CTABlock eyebrow="Come along" title="Two ways to get involved right now." tone="red">
-                <Link href="/get-involved" className="btn bg-brand-off text-brand-charcoal hover:bg-white">Get involved</Link>
-                <Link href="/contact" className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">Contact us</Link>
+                <Link href={cms.text('cta.primary_route', '/get-involved')} className="btn bg-brand-off text-brand-charcoal hover:bg-white">{cms.text('cta.primary_label', 'Get involved')}</Link>
+                <Link href={cms.text('cta.secondary_route', '/contact')} className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">{cms.text('cta.secondary_label', 'Contact us')}</Link>
             </CTABlock>
         </>
     );

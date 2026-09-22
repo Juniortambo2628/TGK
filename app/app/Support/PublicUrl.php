@@ -5,7 +5,7 @@ namespace App\Support;
 /**
  * Resolve a value stored by the CMS/settings into a browser URL. Handles
  * the three formats we accept everywhere:
- *   - "uploads/hero/xyz.jpg"      (Filament FilePond upload → /storage/)
+ *   - "uploads/hero/xyz.jpg"      (FilePond upload → /storage/)
  *   - "images/landing/hero.jpg"   (bundled/seeded asset → asset())
  *   - "https://…"                  (external URL, returned unchanged)
  *

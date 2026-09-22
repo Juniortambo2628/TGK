@@ -23,7 +23,7 @@ class ImageOptimizer
     public const DEFAULT_QUALITY = 82;
 
     /**
-     * Process an uploaded file (from Filament or standard form), optimize it,
+     * Process an uploaded file, optimize it,
      * and store it to the target disk & directory. Returns the stored relative path.
      */
     public static function optimizeUploadedFile(

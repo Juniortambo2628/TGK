@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PublicUrl;
 use Illuminate\Database\Eloquent\Model;
 
 class Partner extends Model
@@ -17,12 +18,6 @@ class Partner extends Model
 
     public function getLogoUrlAttribute(): string
     {
-        if (str_starts_with((string) $this->logo, 'uploads/')) {
-            return asset('storage/'.$this->logo);
-        }
-        if (str_starts_with((string) $this->logo, 'images/')) {
-            return asset($this->logo);
-        }
-        return asset('images/partners/'.$this->logo);
+        return PublicUrl::image($this->logo) ?? asset('images/partners/placeholder.png');
     }
 }

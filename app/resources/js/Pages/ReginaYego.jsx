@@ -72,7 +72,7 @@ export default function ReginaYego() {
                             html={cms.html('growing.body', '<p>Every future center inherits three fixed things from this one: the bracket mark, the Lato wordmark, and the parent line "Good Kenyan Foundation". One thing is chosen per center: a single colour, assigned once, used the way green is used here.</p>')}
                             className="text-lg text-brand-grey leading-relaxed space-y-4"
                         />
-                        <Link href="/contact?topic=partnership" className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-brand-green">Start a conversation about a new center →</Link>
+                        <Link href={cms.text('cta.route', '/contact?topic=partnership')} className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-brand-green">{cms.text('cta.label', 'Start a conversation about a new center')} →</Link>
                     </div>
                 </Container>
             </section>

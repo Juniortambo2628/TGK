@@ -5,7 +5,7 @@ namespace App\Support;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Turn the Laravel route table into a Filament-friendly select list, so
+ * Turn the Laravel route table into a select list, so
  * admins pick a page from a dropdown rather than typing a URL.
  * Adds `External URL…` and a handful of common presets at the top.
  */

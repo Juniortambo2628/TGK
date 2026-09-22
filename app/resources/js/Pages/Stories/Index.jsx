@@ -204,8 +204,8 @@ function Sidebar({ stories, filtered, years, year, onYearChange }) {
                 <p className="text-sm text-brand-grey leading-relaxed">
                     Every story here is shared with the person's consent. If you want to add your own, we would love to hear it.
                 </p>
-                <Link href="/contact?topic=general" className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-brand-red">
-                    Share a story →
+                <Link href={cms.text('cta.route', '/contact?topic=general')} className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-brand-red">
+                    {cms.text('cta.label', 'Share a story')} →
                 </Link>
             </div>
         </div>

@@ -41,8 +41,8 @@ export default function GetInvolved() {
                             eyebrow="Scholarship"
                             title={cms.text('scholarship.title', 'Name a scholarship for a young person.')}
                             description={cms.text('scholarship.body', 'Cover the six month Imarisha training or the one year Stawi placement. We report back on how it went.')}
-                            ctaLabel="Talk to us"
-                            ctaHref="/contact?topic=scholarship"
+                            ctaLabel={cms.text('scholarship.cta_label', 'Talk to us')}
+                            ctaHref={cms.text('scholarship.cta_route', '/contact?topic=scholarship')}
                         />
                         <MentorForm
                             title={cms.text('mentor.title', 'Become a mentor.')}

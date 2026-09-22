@@ -72,7 +72,7 @@ export default function OurModel() {
                                     html={cms.html('daraja.body', '<p>Daraja works with girls aged 14 to 17 at risk of dropping out. Through structured mentorship and life skills at Regina Yego Girls Center, they complete high school and leave with a plan for what comes next.</p>')}
                                     className="mt-4 text-lg leading-relaxed text-brand-charcoal"
                                 />
-                                <Link href="/regina-yego" className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-brand-red">Visit Regina Yego Girls Center →</Link>
+                                <Link href={cms.text('cta.daraja_route', '/regina-yego')} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-brand-red">{cms.text('cta.daraja_label', 'Visit Regina Yego Girls Center')} →</Link>
                             </Reveal>
                         </div>
                     </div>
@@ -80,8 +80,8 @@ export default function OurModel() {
             </section>
 
             <CTABlock eyebrow="Join a cohort" title="Fund the next intake." description="A named cohort. Real outcomes. Ninety day reports." tone="charcoal">
-                <Link href="/get-involved#scholarship" className="btn-primary">Give a scholarship</Link>
-                <Link href="/contact?topic=partnership" className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">Talk about a partnership</Link>
+                <Link href={cms.text('cta.primary_route', '/get-involved#scholarship')} className="btn-primary">{cms.text('cta.primary_label', 'Give a scholarship')}</Link>
+                <Link href={cms.text('cta.secondary_route', '/contact?topic=partnership')} className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">{cms.text('cta.secondary_label', 'Talk about a partnership')}</Link>
             </CTABlock>
         </>
     );

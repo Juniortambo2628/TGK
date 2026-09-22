@@ -271,8 +271,8 @@ export default function Stawi() {
             </section>
 
             <CTABlock eyebrow="Ready to brief us?" title="Two paths, one call." description="Whether it's a launch event, a corporate gift run or a support desk, we'll come back within two working days." tone="red">
-                <Link href="/contact?topic=quote" className="btn bg-brand-off text-brand-charcoal hover:bg-white">Request a quote</Link>
-                <Link href="/contact?topic=partnership" className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">Discuss a partnership</Link>
+                <Link href={cms.text('cta.primary_route', '/contact?topic=quote')} className="btn bg-brand-off text-brand-charcoal hover:bg-white">{cms.text('cta.primary_label', 'Request a quote')}</Link>
+                <Link href={cms.text('cta.secondary_route', '/contact?topic=partnership')} className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">{cms.text('cta.secondary_label', 'Discuss a partnership')}</Link>
             </CTABlock>
         </>
     );
