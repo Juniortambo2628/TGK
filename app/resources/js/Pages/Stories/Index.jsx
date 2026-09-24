@@ -121,7 +121,7 @@ export default function StoriesIndex({ stories = [] }) {
                             className="absolute inset-y-0 left-0 w-4/5 max-w-sm bg-brand-off overflow-y-auto"
                         >
                             <div className="flex items-center justify-between p-5 border-b border-brand-hairline">
-                                <h2 className="text-lg font-black">Filter stories</h2>
+                                <p className="text-lg font-black">Filter stories</p>
                                 <button
                                     type="button"
                                     onClick={() => setDrawerOpen(false)}
@@ -153,7 +153,7 @@ function Sidebar({ stories, filtered, years, year, onYearChange }) {
         <div className="lg:sticky lg:top-24 space-y-8">
             {/* Timeline */}
             <div>
-                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-red mb-4">Timeline</h2>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-red mb-4">Timeline</p>
                 <ul className="space-y-1">
                     <YearItem
                         label="All stories"
@@ -175,9 +175,9 @@ function Sidebar({ stories, filtered, years, year, onYearChange }) {
 
             {/* Quick nav — jump to a specific story */}
             <div>
-                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-red mb-4">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-red mb-4">
                     {year === 'all' ? 'All stories' : `${year} stories`}
-                </h2>
+                </p>
                 <ul className="space-y-1">
                     {filtered.map((s) => (
                         <li key={s.slug}>

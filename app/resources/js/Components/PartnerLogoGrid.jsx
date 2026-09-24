@@ -6,7 +6,7 @@ export default function PartnerLogoGrid({ partners }) {
             {partners.map((p) => (
                 <StaggerItem key={p.name} className="flex items-center justify-center">
                     {p.url ? (
-                        <a href={p.url} target="_blank" rel="noopener" aria-label={p.name}
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" aria-label={p.name}
                            className="group block p-4 opacity-80 hover:opacity-100 transition-opacity">
                             <img
                                 src={p.logo}

@@ -147,7 +147,7 @@ export default function Nav() {
                 </nav>
 
                 <div className="flex items-center gap-3">
-                    <a href={donateUrl} target="_blank" rel="noopener" className="btn-primary hidden md:inline-flex">
+                    <a href={donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary hidden md:inline-flex">
                         Donate
                     </a>
                     <button
@@ -293,7 +293,7 @@ export default function Nav() {
                                     </div>
                                 );
                             })}
-                            <a href={donateUrl} target="_blank" rel="noopener" className="btn-primary mt-6 self-start">
+                            <a href={donateUrl} target="_blank" rel="noopener noreferrer" className="btn-primary mt-6 self-start">
                                 Donate
                             </a>
                         </nav>

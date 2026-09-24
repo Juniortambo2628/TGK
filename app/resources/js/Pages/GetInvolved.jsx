@@ -67,7 +67,7 @@ function Card({ id, eyebrow, title, description, ctaLabel, ctaHref, external = f
                 <h2 className="text-2xl lg:text-3xl font-black mb-4">{title}</h2>
                 <p className="text-brand-grey leading-relaxed flex-1">{description}</p>
                 {external ? (
-                    <a href={ctaHref} target="_blank" rel="noopener" className="mt-8 btn-primary self-start">{ctaLabel}</a>
+                    <a href={ctaHref} target="_blank" rel="noopener noreferrer" className="mt-8 btn-primary self-start">{ctaLabel}</a>
                 ) : (
                     <Link href={ctaHref} className="mt-8 btn-primary self-start">{ctaLabel}</Link>
                 )}

@@ -9,11 +9,10 @@ export default function SiteLayout({ children, title, description }) {
     const flash = props.flash || {};
     const seo = props.seo || {};
     const pageTitle = title || seo.title;
-    const pageDesc = description || seo.description;
 
     return (
         <>
-            {pageTitle && <Head title={pageTitle}>{pageDesc && <meta name="description" content={pageDesc} />}</Head>}
+            {pageTitle && <Head title={pageTitle} />}
             <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-brand-red focus:text-white focus:px-4 focus:py-2 focus:rounded">
                 Skip to content
             </a>

@@ -82,7 +82,7 @@ export default function Footer() {
                                         key={key}
                                         href={href}
                                         target="_blank"
-                                        rel="noopener"
+                                        rel="noopener noreferrer"
                                         aria-label={meta.label}
                                         className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-brand-red transition-colors"
                                     >
@@ -93,23 +93,25 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {columns.map((col) => (
-                        <div key={col.title} className="lg:col-span-2">
-                            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-off mb-4">{col.title}</h3>
-                            <ul className="space-y-3">
-                                {col.links.map((link) => (
-                                    <li key={link.href}>
-                                        <Link href={link.href} className="text-brand-off/75 hover:text-brand-off text-sm">
-                                            {link.label}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
+                    <nav aria-label="Footer" className="contents">
+                        {columns.map((col) => (
+                            <div key={col.title} className="lg:col-span-2">
+                                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-off mb-4">{col.title}</h2>
+                                <ul className="space-y-3">
+                                    {col.links.map((link) => (
+                                        <li key={link.href}>
+                                            <Link href={link.href} className="text-brand-off/75 hover:text-brand-off text-sm">
+                                                {link.label}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </nav>
 
                     <div className="lg:col-span-2">
-                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-off mb-4">Stay in Touch</h3>
+                        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-off mb-4">Stay in Touch</h2>
                         <p className="text-brand-off/75 text-sm mb-4">
                             News from the centers, four times a year. No spam.
                         </p>
@@ -136,7 +138,7 @@ export default function Footer() {
                 <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs text-brand-off/60">
                     <p>© {new Date().getFullYear()} {site.name || 'Good Kenyan Foundation'}. Registered in Kenya.</p>
                     <p>{site.contact?.eldoret ? `${site.contact.eldoret} · ${site.contact.nairobi || ''}` : 'Regina Yego Girls Center, Mile 13 Juakali, Eldoret · PO Box 15137, 00100 Nairobi'}</p>
-                    <a href={donateUrl} target="_blank" rel="noopener" className="text-brand-off hover:text-brand-red">
+                    <a href={donateUrl} target="_blank" rel="noopener noreferrer" className="text-brand-off hover:text-brand-red">
                         Donate →
                     </a>
                 </div>

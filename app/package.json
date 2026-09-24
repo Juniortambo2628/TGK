@@ -2,8 +2,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite"
+        "build": "vite build && vite build --ssr",
+        "dev": "vite",
+        "ssr": "php artisan inertia:start-ssr"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.7",

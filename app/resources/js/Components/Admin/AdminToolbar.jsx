@@ -24,10 +24,12 @@ export default function AdminToolbar({
     const hasBulkActions = bulkActions && bulkActions.length > 0;
     const hasActions = actions && actions.length > 0;
     const [hidden, setHidden] = useState(() => {
+        if (typeof window === 'undefined') return false;
         try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
     });
 
     useEffect(() => {
+        if (typeof window === 'undefined') return;
         try {
             if (hidden) localStorage.setItem(STORAGE_KEY, '1');
             else localStorage.removeItem(STORAGE_KEY);

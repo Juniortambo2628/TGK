@@ -98,7 +98,7 @@ Route::post('/admin/logout', [\App\Http\Controllers\Admin\AuthController::class,
 
 // Sitemap.xml (generated on demand, cached 6h)
 Route::get('/sitemap.xml', function () {
-    return \Illuminate\Support\Facades\Cache::remember('sitemap.xml', now()->addHours(6), function () {
+    $xml = \Illuminate\Support\Facades\Cache::remember('sitemap.xml', now()->addHours(6), function () {
         $sitemap = \Spatie\Sitemap\Sitemap::create()
             ->add(\Spatie\Sitemap\Tags\Url::create('/')->setPriority(1.0))
             ->add(\Spatie\Sitemap\Tags\Url::create('/about'))
@@ -120,4 +120,20 @@ Route::get('/sitemap.xml', function () {
 
         return $sitemap->render();
     });
+
+    return response($xml, 200, [
+        'Content-Type' => 'application/xml; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
 })->name('sitemap');
+
+// robots.txt — absolute sitemap URL from APP_URL (Apache still serves public/robots.txt first in prod)
+Route::get('/robots.txt', function () {
+    $sitemapUrl = rtrim(config('app.url'), '/').'/sitemap.xml';
+
+    return response(
+        "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /admin/\n\nSitemap: {$sitemapUrl}\n",
+        200,
+        ['Content-Type' => 'text/plain; charset=UTF-8']
+    );
+})->name('robots');

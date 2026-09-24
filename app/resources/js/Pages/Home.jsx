@@ -67,7 +67,7 @@ export default function Home({ stories = [], partners = [] }) {
                         const href = resolveHref(route, external, donateUrl);
                         const isExternal = route === '__donate' || route === '__external' || href.startsWith('http');
                         return isExternal
-                            ? <a href={href} target="_blank" rel="noopener" className="btn-primary text-base">{label}</a>
+                            ? <a href={href} target="_blank" rel="noopener noreferrer" className="btn-primary text-base">{label}</a>
                             : <Link href={href} className="btn-primary text-base">{label}</Link>;
                     })()
                 }
@@ -80,7 +80,7 @@ export default function Home({ stories = [], partners = [] }) {
                         const cls = 'btn-outline text-base !text-brand-off !border-brand-off/40 hover:!text-brand-off hover:!border-brand-off';
                         const isExternal = route === '__donate' || route === '__external' || href.startsWith('http');
                         return isExternal
-                            ? <a href={href} target="_blank" rel="noopener" className={cls}>{label}</a>
+                            ? <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>{label}</a>
                             : <Link href={href} className={cls}>{label}</Link>;
                     })()
                 }
@@ -172,7 +172,7 @@ export default function Home({ stories = [], partners = [] }) {
                     <div className="mt-20 grid gap-8 lg:grid-cols-2">
                         <Reveal>
                             <div className="rounded-3xl bg-white p-8 lg:p-10 shadow-card">
-                                <h3 className="text-2xl font-black mb-4">The transition trap</h3>
+                                <h3 className="text-2xl font-black mb-4">Where the gap opens</h3>
                                 <ul className="space-y-3 text-brand-grey leading-relaxed">
                                     <li className="flex gap-3"><span className="text-brand-red mt-1.5">●</span>Most youth in low income rural and informal urban communities are trapped in survival work and petty trade.</li>
                                     <li className="flex gap-3"><span className="text-brand-red mt-1.5">●</span>The window between school and first income is where hope most often stalls.</li>
@@ -356,7 +356,7 @@ export default function Home({ stories = [], partners = [] }) {
                 tone="charcoal"
             >
                 <Link href="/contact" className="btn-primary">Send a message</Link>
-                <a href={donateUrl} target="_blank" rel="noopener" className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">Donate</a>
+                <a href={donateUrl} target="_blank" rel="noopener noreferrer" className="btn border border-brand-off/40 text-brand-off hover:border-brand-off">Donate</a>
             </CTABlock>
         </>
     );

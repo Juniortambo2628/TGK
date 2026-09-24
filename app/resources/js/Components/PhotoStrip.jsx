@@ -12,6 +12,7 @@ export default function PhotoStrip({ photos, eyebrow, title, description }) {
     useEffect(() => {
         const el = trackRef.current;
         if (!el || photos.length < 4) return;
+        if (typeof window === 'undefined') return;
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
         let raf, paused = false;
@@ -60,7 +61,7 @@ export default function PhotoStrip({ photos, eyebrow, title, description }) {
                     >
                         <img
                             src={p.src}
-                            alt={p.alt || ''}
+                            alt={p.alt || p.caption || ''}
                             loading="lazy"
                             className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.04]"
                         />

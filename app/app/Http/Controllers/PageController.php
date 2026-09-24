@@ -21,7 +21,7 @@ class PageController extends Controller
             'cms'      => Content::for('home')->toShare(),
             'seo'      => [
                 'title'       => 'From school to opportunity · Good Kenyan Foundation',
-                'description' => 'Good Kenyan Foundation equips young people with the skills, mentorship and pathways to move from education into work or entrepreneurship.',
+                'description' => 'Good Kenyan Foundation equips young Kenyans with skills, mentorship and clear pathways from school into work, further study or entrepreneurship.',
             ],
         ]);
     }
@@ -42,8 +42,8 @@ class PageController extends Controller
         return Inertia::render('OurModel', [
             'cms' => Content::for('our-model')->toShare(),
             'seo' => [
-                'title'       => 'Our model · Discover, Develop, Launch',
-                'description' => 'Three interconnected stages, one structured journey from self discovery to economic participation.',
+                'title'       => 'Our model · Discover, Develop, Launch · Good Kenyan Foundation',
+                'description' => 'Three interconnected stages — Discover, Develop and Launch — form one structured journey from self-discovery to economic participation for Kenyan youth.',
             ],
         ]);
     }
@@ -64,8 +64,8 @@ class PageController extends Controller
         return Inertia::render('Stawi', [
             'cms' => Content::for('stawi')->toShare(),
             'seo' => [
-                'title'       => 'Stawi Enterprises · Good Studio & Good Connect',
-                'description' => 'Buy good work and fund a livelihood. Good Studio for events and design, Good Connect for customer experience.',
+                'title'       => 'Stawi Enterprises · Good Studio & Good Connect · Good Kenyan Foundation',
+                'description' => 'Buy good work and fund a livelihood. Good Studio delivers events, design and products with a traceable story; Good Connect provides customer experience from Kenya.',
             ],
         ]);
     }
@@ -77,7 +77,7 @@ class PageController extends Controller
             'cms'      => Content::for('partners')->toShare(),
             'seo'      => [
                 'title'       => 'Partners · Good Kenyan Foundation',
-                'description' => 'The organisations that walk with us.',
+                'description' => 'Meet the organisations that walk with Good Kenyan Foundation — funding, mentoring and opening pathways for young Kenyans from school to opportunity.',
             ],
         ]);
     }
@@ -98,9 +98,9 @@ class PageController extends Controller
         return Inertia::render('Contact', [
             'topic' => (string) $request->query('topic', ''),
             'cms'   => Content::for('contact')->toShare(),
-            'seo'   => [
+            'seo' => [
                 'title'       => 'Contact us · Good Kenyan Foundation',
-                'description' => 'Say hello. We reply within two working days.',
+                'description' => 'Get in touch with Good Kenyan Foundation in Eldoret or Nairobi. Email, call or message us — we reply within two working days.',
             ],
         ]);
     }
