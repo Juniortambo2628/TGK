@@ -38,26 +38,40 @@ export default function FileUploader({
         fileInputRef.current?.click();
     };
 
+    const uploadFile = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', folder);
+        const xsrf = decodeURIComponent(document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] || '');
+        const res = await fetch('/admin/media/upload', {
+            method: 'POST',
+            headers: { 'X-XSRF-TOKEN': xsrf, 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData,
+        });
+        if (!res.ok) throw new Error('Upload failed');
+        const data = await res.json();
+        if (!data.url) throw new Error('No URL returned');
+        onChange(data.url);
+    };
+
     const handleFileChange = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.type.startsWith('image/')) {
-            try {
+        try {
+            let upload = file;
+            if (file.type.startsWith('image/')) {
                 const compressedFile = await imageCompression(file, {
                     maxSizeMB: 1,
                     maxWidthOrHeight: maxWidth,
                     useWebWorker: true,
                     initialQuality: quality,
                 });
-                const pondFile = new File([compressedFile], compressedFile.name, { type: compressedFile.type });
-                setFiles([pondFile]);
-            } catch (err) {
-                console.error('Compression failed:', err);
-                setFiles([file]);
+                upload = new File([compressedFile], compressedFile.name, { type: compressedFile.type });
             }
-        } else {
-            setFiles([file]);
+            await uploadFile(upload);
+        } catch (err) {
+            console.error('Upload failed:', err);
         }
         e.target.value = '';
     };

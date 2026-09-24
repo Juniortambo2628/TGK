@@ -31,9 +31,12 @@
     <meta name="twitter:description" content="{{ $description }}" />
     <meta name="twitter:image" content="{{ $ogImage }}" />
 
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/favicon-192.png') }}" />
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}" />
+    @php
+        $favicon = $page['props']['site']['favicon'] ?? asset('images/favicon-192.png');
+    @endphp
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ $favicon }}" />
+    <link rel="icon" type="image/png" href="{{ $favicon }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $page['props']['site']['logo'] ?? asset('images/apple-touch-icon.png') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
