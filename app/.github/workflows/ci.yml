@@ -103,8 +103,7 @@ jobs:
       - name: Assert SEO/SSR artifacts
         run: |
           test -f public/build/manifest.json
-          # SSR bundle is optional on shared hosting but must build when enabled
-          npm run build
+          test -f bootstrap/ssr/index.mjs -o -d bootstrap/ssr
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -114,11 +113,10 @@ jobs:
           retention-days: 1
 
   deploy:
-    name: Deploy to cPanel
+    name: Deploy to cPanel (FTP)
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout
@@ -140,105 +138,114 @@ jobs:
           node-version: '20'
           cache: npm
 
+      - name: Install system tools (lftp)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
       - name: Install NPM dependencies
         run: npm ci
 
       - name: Build frontend assets
         run: npm run build
 
-      - name: Download previous public build (if needed)
-        uses: actions/download-artifact@v4
-        with:
-          name: public-build
-          path: public/build
-        continue-on-error: true
-
       - name: Materialize production .env from secret
         env:
           PROD_ENV: ${{ secrets.PROD_ENV }}
         run: |
-          # .env.production is gitignored — inject from GitHub secret so the
-          # tarball always ships a working .env (server prefers its own if present).
           if [ -n "$PROD_ENV" ]; then
             printf '%s\n' "$PROD_ENV" > .env.production
             sed -i 's/\r$//' .env.production
             echo "Wrote .env.production from PROD_ENV secret"
           elif [ -f .env.production ]; then
-            echo "Using checked-in .env.production (should not happen — file is gitignored)"
+            echo "Using local .env.production (should not be in git)"
           else
-            echo "WARNING: PROD_ENV secret not set and no .env.production — first deploy will fail unless server already has ~/TGK-core/.env"
+            echo "WARNING: PROD_ENV not set — remote .env will be used if present"
           fi
 
-      - name: Package release (composer prod + tar)
-        id: package
+      - name: Package release (composer prod + stage)
         run: |
-          chmod +x scripts/deploy/package-release.sh
+          chmod +x scripts/deploy/package-release.sh scripts/deploy/prepare-public.sh scripts/deploy/ftp-deploy.sh
           ./scripts/deploy/package-release.sh dist "${GITHUB_SHA::7}"
-          echo "archive=$(ls dist/release-*.tar.gz | head -n1)" >> "$GITHUB_OUTPUT"
+          ./scripts/deploy/prepare-public.sh dist/stage dist/public-docroot
 
-      - name: Prepare SSH key
+      - name: Upload release over FTP
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_SSL: ${{ secrets.FTP_SSL }}
+          FTP_CORE_DIR: ${{ secrets.FTP_CORE_DIR }}
+          FTP_PUBLIC_DIR: ${{ secrets.FTP_PUBLIC_DIR }}
+        run: ./scripts/deploy/ftp-deploy.sh
+
+      - name: Run artisan deploy hook
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_SSL: ${{ secrets.FTP_SSL }}
+          FTP_PUBLIC_DIR: ${{ secrets.FTP_PUBLIC_DIR }}
+          CORE_PATH_REMOTE: ${{ secrets.CORE_PATH_REMOTE }}
         run: |
-          if [ -z "$SSH_PRIVATE_KEY" ]; then
-            echo "ERROR: SSH_PRIVATE_KEY secret is not set"
+          set -euo pipefail
+          FTP_PORT="${FTP_PORT:-21}"
+          FTP_PUBLIC_DIR="${FTP_PUBLIC_DIR:-TGK-public}"
+          CORE_PATH_REMOTE="${CORE_PATH_REMOTE:-/home/goodmshd/TGK-core}"
+          HOOK_NAME="deploy-hook-${GITHUB_SHA::7}.php"
+          TOKEN="$(openssl rand -hex 24)"
+          SCHEME="ftp"
+          CURL_SSL=""
+          if [ "${FTP_SSL:-false}" = "true" ] || [ "${FTP_SSL:-false}" = "1" ]; then
+            SCHEME="ftps"
+            CURL_SSL="--ssl-reqd"
+          fi
+
+          # Build hook with token + core path injected
+          sed -e "s|__CORE_PATH__|${CORE_PATH_REMOTE}|g" \
+              -e "s|__HOOK_TOKEN__|${TOKEN}|g" \
+              scripts/deploy/artisan-hook.php > "dist/${HOOK_NAME}"
+
+          echo "Uploading ${HOOK_NAME}"
+          curl --silent --show-error --fail $CURL_SSL \
+            --user "${FTP_USER}:${FTP_PASS}" \
+            --ftp-create-dirs \
+            -T "dist/${HOOK_NAME}" \
+            "${SCHEME}://${FTP_HOST}:${FTP_PORT}/${FTP_PUBLIC_DIR}/${HOOK_NAME}"
+
+          # Give Apache a moment to see the new file
+          sleep 2
+
+          echo "Invoking hook"
+          set +e
+          RESP=$(curl -sS -o /tmp/hook.out -w '%{http_code}' --max-time 120 \
+            "https://goodkenyan.org/${HOOK_NAME}?token=${TOKEN}")
+          set -e
+          echo "HTTP ${RESP}"
+          cat /tmp/hook.out || true
+
+          # Always try to delete the hook (even on failure)
+          curl --silent $CURL_SSL \
+            --user "${FTP_USER}:${FTP_PASS}" \
+            -Q "DELE ${FTP_PUBLIC_DIR}/${HOOK_NAME}" \
+            "${SCHEME}://${FTP_HOST}:${FTP_PORT}/" >/dev/null 2>&1 || \
+          curl --silent $CURL_SSL \
+            --user "${FTP_USER}:${FTP_PASS}" \
+            -Q "DELE ${HOOK_NAME}" \
+            "${SCHEME}://${FTP_HOST}:${FTP_PORT}/${FTP_PUBLIC_DIR}/" >/dev/null 2>&1 || true
+
+          if [ "$RESP" != "200" ]; then
+            echo "ERROR: artisan hook failed (HTTP ${RESP})"
             exit 1
           fi
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          # Normalize possible Windows CRLF in pasted secret
-          sed -i 's/\r$//' ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
-          chmod 644 ~/.ssh/known_hosts
-
-      - name: Upload release + deploy script (SCP)
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
-        run: |
-          set -euo pipefail
-          RELEASE_ID="${GITHUB_SHA::7}"
-          REMOTE_CORE="/home/${SSH_USER}/TGK-core"
-          REMOTE_PUB="/home/${SSH_USER}/TGK-public"
-          ARCHIVE="${{ steps.package.outputs.archive }}"
-          BASENAME="release-${RELEASE_ID}.tar.gz"
-
-          ssh -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new "${SSH_USER}@${SSH_HOST}" \
-            "mkdir -p '${REMOTE_CORE}/releases' '${REMOTE_PUB}'"
-
-          scp -P "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
-            scripts/deploy/server-deploy.sh \
-            "${SSH_USER}@${SSH_HOST}:${REMOTE_CORE}/server-deploy.sh"
-
-          scp -P "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
-            "$ARCHIVE" \
-            "${SSH_USER}@${SSH_HOST}:${REMOTE_CORE}/releases/${BASENAME}"
-
-          echo "Uploaded ${BASENAME}"
-
-      - name: Run server deploy
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
-        run: |
-          set -euo pipefail
-          RELEASE_ID="${GITHUB_SHA::7}"
-          ssh -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new "${SSH_USER}@${SSH_HOST}" \
-            "export RELEASE_ID='${RELEASE_ID}'; \
-             export CORE_DIR=\"\$HOME/TGK-core\"; \
-             export PUBLIC_DIR=\"\$HOME/TGK-public\"; \
-             export RELEASE_ARCHIVE=\"\$CORE_DIR/releases/release-\${RELEASE_ID}.tar.gz\"; \
-             export KEEP_RELEASES=3; \
-             chmod +x \"\$CORE_DIR/server-deploy.sh\"; \
-             bash \"\$CORE_DIR/server-deploy.sh\""
+          grep -q 'DEPLOY HOOK OK' /tmp/hook.out || {
+            echo "ERROR: hook did not report success"
+            exit 1
+          }
 
       - name: Smoke check public URL
         run: |
           set -euo pipefail
-          # Wait briefly for opcache/FS
           sleep 5
           code=$(curl -sS -o /tmp/home.html -w '%{http_code}' -L --max-time 30 https://goodkenyan.org/ || true)
           echo "HTTP $code"
@@ -254,7 +261,3 @@ jobs:
           code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://goodkenyan.org/robots.txt || true)
           echo "robots HTTP $code"
           [ "$code" = "200" ]
-
-      - name: Discard SSH key material
-        if: always()
-        run: rm -f ~/.ssh/id_ed25519 || true

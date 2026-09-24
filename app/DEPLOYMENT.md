@@ -15,49 +15,53 @@ CI still builds the SSR bundle so you can enable it later on a VPS with Node.
 
 ---
 
-## Server layout
+## Why FTP (not SSH)
 
-| Role | Path |
-|------|------|
-| Document root (vhost) | `/home/goodmshd/TGK-public` |
-| Laravel application | `/home/goodmshd/TGK-core` |
-| Releases (keep 3) | `/home/goodmshd/TGK-core/releases/<sha>` |
-| Public storage | `/home/goodmshd/TGK-core/storage/app/public` → symlink `TGK-public/storage` |
+SSH ports (22, 1624, 2222, …) are **filtered** on this host — connection times out
+from both this machine and GitHub Actions. FTP port **21 is open** (verified).
 
-`TGK-public/index.php` is generated from `scripts/deploy/public-index.php` logic and loads:
-`/home/goodmshd/TGK-core/bootstrap/app.php`
+Deploy path: **GitHub Actions → FTP → cPanel**, then a one-shot PHP hook runs
+`artisan migrate` / caches over HTTPS (no SSH, no rsync).
 
 ---
 
-## SSH key pair (already generated in repo root)
+## Server layout
 
-**Files (gitignored — never commit):**
-- `github-actions-TGK` — private key
-- `github-actions-TGK.pub` — public key
+| Role | Path (filesystem) | Path (FTP, chroot to home) |
+|------|-------------------|----------------------------|
+| Document root (vhost) | `/home/goodmshd/TGK-public` | `TGK-public/` |
+| Laravel application | `/home/goodmshd/TGK-core` | `TGK-core/` |
+| Public storage | `/home/goodmshd/TGK-core/storage/app/public` → symlink `TGK-public/storage` | — |
 
-### 1. cPanel → Authorize key
-1. cPanel → **SSH Access** → **Manage SSH Keys**
-2. **Import Public Key** → paste contents of `github-actions-TGK.pub`
-3. **Authorize** the key  
-   Or append the `.pub` line to `~/.ssh/authorized_keys` for user `goodmshd`.
+`TGK-public/index.php` comes from `scripts/deploy/public-index.php` and boots
+`/home/goodmshd/TGK-core/bootstrap/app.php`.
 
-### 2. GitHub → Secrets
-Repo → **Settings → Secrets and variables → Actions → New repository secret**
+> cPanel FTP usually chroots to the home directory — use **relative** paths
+> `TGK-core` / `TGK-public` (the defaults). If your FTP user is not chrooted,
+> set secrets to absolute paths instead.
 
-| Secret name | Value |
-|-------------|--------|
-| `SSH_PRIVATE_KEY` | Full contents of `github-actions-TGK` (including `BEGIN`/`END` lines) |
-| `SSH_HOST` | `184.94.213.150` |
-| `SSH_USER` | `goodmshd` |
-| `SSH_PORT` | `22` |
-| `PROD_ENV` | Full contents of local `.env.production` (same lines as the file, pasted as one secret). CI writes this into the release tar as `.env` so the first deploy has credentials. The server's existing `~/TGK-core/.env` always wins if present. |
+---
 
-Also: repo → **Settings → Environments → New environment → `production`** (the deploy job references it; leave unprotected, or add required reviewers to gate deploys).
+## GitHub → Secrets
 
-**Alternative to `PROD_ENV`:** upload the env once manually before the first deploy:
-```bash
-scp -P 22 .env.production goodmshd@184.94.213.150:~/TGK-core/.env
-```
+**Settings → Secrets and variables → Actions → New repository secret**
+
+| Secret name | Required | Value |
+|-------------|----------|--------|
+| `FTP_HOST` | yes | `184.94.213.150` (or your FTP hostname) |
+| `FTP_USER` | yes | cPanel username, e.g. `goodmshd` |
+| `FTP_PASS` | yes | cPanel/FTP password |
+| `FTP_PORT` | no | `21` (default) |
+| `FTP_SSL` | no | `true` if host requires FTPS (AUTH TLS) |
+| `FTP_CORE_DIR` | no | `TGK-core` (default) |
+| `FTP_PUBLIC_DIR` | no | `TGK-public` (default) |
+| `CORE_PATH_REMOTE` | no | `/home/goodmshd/TGK-core` (absolute path for PHP hook) |
+| `PROD_ENV` | recommended | Full contents of local `.env.production` — uploaded **only if** the server has no `.env` yet |
+
+SSH secrets (`SSH_*`) are **not used** while port 22 stays blocked.
+
+Environments (`production` in Settings) are **optional** and unavailable on
+GitHub Free + private repos — the workflow no longer requires one.
 
 ---
 
@@ -65,55 +69,47 @@ scp -P 22 .env.production goodmshd@184.94.213.150:~/TGK-core/.env
 
 **`.github/workflows/ci.yml`** on every push to `main`:
 
-1. **test** job  
-   - Composer + npm install  
-   - Laravel Pint (autofix + commit as `github-actions[bot]` with `[skip ci]`)  
-   - PHPUnit (`php artisan test`)  
-   - `npm run build`  
-2. **deploy** job (`needs: test`, only on `push` to `main`)  
-   - Rebuild assets  
-   - Write `.env.production` from `PROD_ENV` secret  
-   - Package tar (composer `--no-dev`, ship `public/build`, ship `.env` fallback)  
-   - SCP archive + `server-deploy.sh` (no rsync)  
-   - SSH run `server-deploy.sh`: requirements → extract → preserve `.env`/storage → permissions → switch code → sync `TGK-public` → artisan migrate/optimize → prune old releases → structure checks  
+1. **test** — Composer + npm, Pint autofix commit, PHPUnit, `npm run build`
+2. **deploy** (`needs: test`)
+   - Build assets
+   - Write `.env.production` from `PROD_ENV`
+   - `package-release.sh` → `dist/stage` (composer `--no-dev`, ship `public/build`)
+   - `prepare-public.sh` → `dist/public-docroot` (custom `index.php` + `.htaccess` + `build/`)
+   - `ftp-deploy.sh` — lftp mirror stage → `TGK-core/`, docroot → `TGK-public/`
+     - **Never overwrites** remote `.env`, logs, sessions, uploads
+     - Uploads staged `.env` only if server `.env` is missing
+   - Upload `deploy-hook-<sha>.php` (random token), `GET` it once → migrate + caches
+   - **Delete** the hook
    - HTTPS smoke check: `/`, `/sitemap.xml`, `/robots.txt`
 
 ---
 
 ## First-time server bootstrap (once)
 
+In **cPanel → Terminal** (or File Manager):
+
 ```bash
-# From your machine after adding the public key in cPanel:
-ssh -p 22 goodmshd@184.94.213.150
-mkdir -p ~/TGK-core/releases ~/TGK-public
-# Optional: upload production .env once
-# scp -P 22 .env.production goodmshd@184.94.213.150:~/TGK-core/.env
+mkdir -p ~/TGK-core/storage/app/public ~/TGK-core/storage/app/private \
+         ~/TGK-core/storage/framework/{cache/data,sessions,views} \
+         ~/TGK-core/storage/logs ~/TGK-core/bootstrap/cache \
+         ~/TGK-public
+
+# Public uploads URL (/storage/…) — FTP cannot create symlinks
+ln -sfn ~/TGK-core/storage/app/public ~/TGK-public/storage
 ```
 
-Point the domain **goodkenyan.org** document root in cPanel MultiPHP/Apache to:
-`/home/goodmshd/TGK-public`
+1. **cPanel → File Manager** → create `TGK-core/.env`  
+   (paste local `.env.production`, or set the `PROD_ENV` secret and let the first deploy upload it)
+2. Document root for **goodkenyan.org** → `/home/goodmshd/TGK-public`
+3. PHP **8.2+** (8.3 recommended); extensions: `pdo_mysql`, `mbstring`, `openssl`, `ctype`, `json`, `curl`, `fileinfo`, `tokenizer`, `xml`
+4. MySQL (cPanel) — already in `.env.production`:  
+   DB `goodmshd_TGK-site`, user `goodmshd_TGKADM`
 
-PHP version: **8.2+** (8.3 recommended). Enable extensions: `pdo_mysql`, `mbstring`, `openssl`, `ctype`, `json`, `curl`, `fileinfo`, `tokenizer`, `xml`.
+After the first successful deploy:
 
-MySQL (cPanel):
-- DB: `goodmshd_TGK-site`
-- User: `goodmshd_TGKADM`
-- Already wired in `.env.production`
-
-### First deploy will:
-1. Create dirs
-2. Install vendor (from tar)
-3. Run migrations + seeders only if you run them manually:  
-   `php artisan migrate --force`  
-   `php artisan db:seed --force` (optional content)
-4. Cache config/routes/views
-5. Link storage → `TGK-public/storage`
-
-Create the first admin (if not seeded):
 ```bash
-cd ~/TGK-core && php artisan tinker
-# or use DatabaseSeeder AdminUserSeeder
-php artisan db:seed --class=AdminUserSeeder --force
+# Optional admin user
+cd ~/TGK-core && php artisan db:seed --class=AdminUserSeeder --force
 ```
 
 ---
@@ -125,21 +121,17 @@ Gitignored (verified):
 - `github-actions-*`, `*.pem`, `id_rsa`, `id_ed25519`
 - `/vendor`, `/public/build`, `/bootstrap/ssr`
 
-No `.env` with production DB/SMTP passwords has ever been committed (history checked).
-`.env.example` and `.env.production.example` use placeholders only.
-
 Production credentials live only in:
 1. Local gitignored `.env.production`
-2. Server `~/TGK-core/.env` (preserved across deploys)
-3. GitHub secrets (`SSH_*` + `PROD_ENV` — encrypted, never printed in logs)
+2. Server `TGK-core/.env` (never overwritten by FTP)
+3. GitHub secrets (`FTP_*`, `PROD_ENV`)
 
 ---
 
 ## Enabling SSR later (VPS only)
 
 ```bash
-# On a host with Node 20+
-npm run build          # builds client + bootstrap/ssr
+npm run build
 INERTIA_SSR_ENABLED=true php artisan inertia:start-ssr
 ```
 
@@ -151,24 +143,31 @@ Not for this cPanel box.
 
 | Symptom | Fix |
 |---------|-----|
-| 500 on site | `tail ~/TGK-core/storage/logs/laravel.log`; check `public/index.php` paths; `php artisan config:clear` |
-| Assets 404 | Ensure `TGK-public/build` exists; re-run deploy |
-| `/storage` 404 | `ls -la ~/TGK-public/storage` → should link to `~/TGK-core/storage/app/public` |
-| Migrate failed | Check DB user privileges in cPanel MySQL; run migrate from cPanel Terminal |
-| Deploy auth fail | Re-import `.pub` key; authorize it; confirm `SSH_PRIVATE_KEY` secret |
+| FTP auth fail | Check `FTP_HOST`/`FTP_USER`/`FTP_PASS`; try `FTP_SSL=true`; confirm port 21 in cPanel → FTP Accounts |
+| FTP path not found | Paths are relative to FTP home — keep `TGK-core` / `TGK-public` (no `/home/…` prefix) |
+| 500 on site | cPanel Terminal: `tail ~/TGK-core/storage/logs/laravel.log` |
+| Assets 404 | Confirm `TGK-public/build/manifest.json` exists; re-run deploy |
+| `/storage` 404 | `ls -la ~/TGK-public/storage` → must be a symlink to `~/TGK-core/storage/app/public` |
+| Hook HTTP 403/404 | File not uploaded or token mismatch — check deploy job log; re-run workflow |
+| Hook left on server | Should auto-delete; remove `TGK-public/deploy-hook-*.php` via File Manager if needed |
+| Migrate failed | cPanel Terminal: `cd ~/TGK-core && php artisan migrate --force` |
 | Pint commit loop | Autofix commits use `[skip ci]` |
+| SSH still blocked | Expected — host firewall; ask host to open 22 if you want SSH deploys later |
 
 ---
 
-## Manual deploy (emergency)
+## Manual emergency deploy (FTP from your machine)
 
 ```bash
 ./scripts/deploy/package-release.sh dist manual
-scp -P 22 dist/release-*.tar.gz scripts/deploy/server-deploy.sh \
-  goodmshd@184.94.213.150:/home/goodmshd/TGK-core/
-ssh -p 22 goodmshd@184.94.213.150
-cd ~/TGK-core
-export RELEASE_ARCHIVE=~/TGK-core/release-*.tar.gz
-export CORE_DIR=$HOME/TGK-core PUBLIC_DIR=$HOME/TGK-public RELEASE_ID=manual
-bash server-deploy.sh
+./scripts/deploy/prepare-public.sh dist/stage dist/public-docroot
+
+export FTP_HOST=184.94.213.150 FTP_USER=goodmshd FTP_PASS='…' FTP_PORT=21
+./scripts/deploy/ftp-deploy.sh
+```
+
+Then in cPanel Terminal:
+
+```bash
+cd ~/TGK-core && php artisan migrate --force && php artisan optimize
 ```
