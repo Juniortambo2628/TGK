@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
 use App\Models\MentorApplication;
 use App\Models\Registration;
-use App\Models\ScholarshipApplication;
 use App\Models\Subscriber;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DashboardController extends Controller

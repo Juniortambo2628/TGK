@@ -29,7 +29,7 @@ class MediaController extends Controller
         $path = $file->store('uploads/library', 'public');
         ImageOptimizer::optimizeUploadedFile($file, 'public', 'uploads/library');
 
-        return response()->json(['path' => $path, 'url' => asset('storage/' . $path)]);
+        return response()->json(['path' => $path, 'url' => asset('storage/'.$path)]);
     }
 
     public function destroy(Request $request)

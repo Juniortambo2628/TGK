@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class ScholarshipApplication extends Model
 {
-    protected $fillable = ['name','email','phone','organisation','amount','message','status'];
+    protected $fillable = ['name', 'email', 'phone', 'organisation', 'amount', 'message', 'status'];
 }

@@ -65,7 +65,7 @@ class PostController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|max:200',
-            'slug' => 'required|max:200|unique:posts,slug,' . $post->id,
+            'slug' => 'required|max:200|unique:posts,slug,'.$post->id,
             'excerpt' => 'nullable|max:500',
             'body' => 'required',
             'hero_image' => 'nullable|string',

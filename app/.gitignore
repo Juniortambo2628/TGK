@@ -10,6 +10,7 @@
 .env
 .env.backup
 .env.production
+.env.*.local
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -22,3 +23,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+# GitHub Actions / cPanel SSH keys — never commit
+github-actions-*
+github-actions-*.pub
+*.pem
+id_rsa
+id_ed25519

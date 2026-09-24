@@ -82,12 +82,12 @@ class MediaLibrary
         }
 
         // Filter by folder
-        if (!empty($folder) && $folder !== 'all') {
+        if (! empty($folder) && $folder !== 'all') {
             $items = $items->filter(fn ($item) => strcasecmp($item['folder'], $folder) === 0);
         }
 
         // Filter by search query
-        if (!empty($search)) {
+        if (! empty($search)) {
             $term = mb_strtolower(trim($search));
             $items = $items->filter(function ($item) use ($term) {
                 return str_contains(mb_strtolower($item['name']), $term)
@@ -146,7 +146,7 @@ class MediaLibrary
     public static function optimize(string $path): array
     {
         $absolute = static::resolveAbsolutePath($path);
-        if (!$absolute || !file_exists($absolute)) {
+        if (! $absolute || ! file_exists($absolute)) {
             return ['saved_percent' => 0, 'old_size' => 0, 'new_size' => 0, 'saved_bytes' => 0];
         }
 
@@ -159,7 +159,7 @@ class MediaLibrary
     public static function crop(string $path, array $cropData): ?string
     {
         $absolute = static::resolveAbsolutePath($path);
-        if (!$absolute || !file_exists($absolute)) {
+        if (! $absolute || ! file_exists($absolute)) {
             return null;
         }
 
@@ -167,16 +167,18 @@ class MediaLibrary
         if (str_starts_with(ltrim($path, '/'), 'images/')) {
             $filename = 'crop_'.pathinfo($absolute, PATHINFO_FILENAME).'_'.time().'.webp';
             $destDir = storage_path('app/public/uploads/cropped');
-            if (!File::isDirectory($destDir)) {
+            if (! File::isDirectory($destDir)) {
                 File::makeDirectory($destDir, 0755, true);
             }
             $destPath = $destDir.DIRECTORY_SEPARATOR.$filename;
             ImageOptimizer::cropAndReposition($absolute, $cropData, $destPath);
+
             return 'uploads/cropped/'.$filename;
         }
 
         // For user uploads, update directly
         ImageOptimizer::cropAndReposition($absolute, $cropData, $absolute);
+
         return $path;
     }
 
@@ -224,20 +226,20 @@ class MediaLibrary
         $mime = $imgInfo ? $imgInfo['mime'] : (@mime_content_type($realPath) ?: 'image/jpeg');
 
         return [
-            'id'                 => md5($relativePath),
-            'name'               => $file->getFilename(),
-            'path'               => $relativePath,
-            'url'                => $url,
-            'absolute_path'      => $realPath,
-            'size'               => $size,
-            'size_formatted'     => static::formatBytes($size),
-            'dimensions'         => $w > 0 ? "{$w} × {$h}" : '—',
-            'width'              => $w,
-            'height'             => $h,
-            'mime'               => $mime,
-            'folder'             => $folder,
-            'is_seed'            => $isSeed,
-            'modified_at'        => $file->getMTime(),
+            'id' => md5($relativePath),
+            'name' => $file->getFilename(),
+            'path' => $relativePath,
+            'url' => $url,
+            'absolute_path' => $realPath,
+            'size' => $size,
+            'size_formatted' => static::formatBytes($size),
+            'dimensions' => $w > 0 ? "{$w} × {$h}" : '—',
+            'width' => $w,
+            'height' => $h,
+            'mime' => $mime,
+            'folder' => $folder,
+            'is_seed' => $isSeed,
+            'modified_at' => $file->getMTime(),
             'modified_formatted' => date('M j, Y g:i a', $file->getMTime()),
         ];
     }
@@ -245,14 +247,18 @@ class MediaLibrary
     public static function isImageFile(string $path): bool
     {
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
         return in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
     }
 
     public static function formatBytes(int $bytes, int $precision = 1): string
     {
-        if ($bytes <= 0) return '0 B';
+        if ($bytes <= 0) {
+            return '0 B';
+        }
         $units = ['B', 'KB', 'MB', 'GB'];
         $power = min((int) floor(log($bytes, 1024)), count($units) - 1);
+
         return round($bytes / pow(1024, $power), $precision).' '.$units[$power];
     }
 }

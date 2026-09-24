@@ -16,10 +16,18 @@ class PublicUrl
 {
     public static function image(mixed $value, ?string $fallback = null, string $prefix = ''): ?string
     {
-        if (is_array($value)) $value = reset($value) ?: null;
-        if (! is_string($value) || $value === '') return $fallback;
-        if (str_starts_with($value, 'http')) return $value;
-        if (str_starts_with($value, 'uploads/')) return asset('storage/'.$value);
+        if (is_array($value)) {
+            $value = reset($value) ?: null;
+        }
+        if (! is_string($value) || $value === '') {
+            return $fallback;
+        }
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
+        if (str_starts_with($value, 'uploads/')) {
+            return asset('storage/'.$value);
+        }
         if (str_starts_with($value, 'images/') || str_starts_with($value, '/images/')) {
             return asset(ltrim($value, '/'));
         }
@@ -27,16 +35,20 @@ class PublicUrl
         if ($prefix !== '') {
             return asset($prefix.ltrim($value, '/'));
         }
+
         return asset(ltrim($value, '/'));
     }
 
     /**
-     * @param array|mixed $values
+     * @param  array|mixed  $values
      * @return array<int,string>
      */
     public static function images(mixed $values, array $fallback = [], string $prefix = ''): array
     {
-        if (! is_array($values) || empty($values)) return $fallback;
+        if (! is_array($values) || empty($values)) {
+            return $fallback;
+        }
+
         return array_values(array_filter(array_map(
             fn ($v) => self::image($v, null, $prefix),
             $values

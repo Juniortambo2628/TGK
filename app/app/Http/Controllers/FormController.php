@@ -32,10 +32,10 @@ class FormController extends Controller
     public function contact(Request $request)
     {
         $data = $request->validate([
-            'name'    => ['required', 'string', 'max:120'],
-            'email'   => ['required', 'email:rfc', 'max:255'],
-            'phone'   => ['nullable', 'string', 'max:40'],
-            'topic'   => ['nullable', 'string', 'max:40'],
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email:rfc', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'topic' => ['nullable', 'string', 'max:40'],
             'message' => ['required', 'string', 'min:5', 'max:5000'],
         ]);
 
@@ -50,12 +50,12 @@ class FormController extends Controller
     public function mentor(Request $request)
     {
         $data = $request->validate([
-            'name'            => ['required', 'string', 'max:120'],
-            'email'           => ['required', 'email:rfc', 'max:255'],
-            'phone'           => ['nullable', 'string', 'max:40'],
-            'profession'      => ['nullable', 'string', 'max:120'],
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email:rfc', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'profession' => ['nullable', 'string', 'max:120'],
             'hours_per_month' => ['nullable', 'string', 'max:40'],
-            'message'         => ['nullable', 'string', 'max:3000'],
+            'message' => ['nullable', 'string', 'max:3000'],
         ]);
 
         $this->throttle($request, 'mentor', 3);
@@ -69,12 +69,12 @@ class FormController extends Controller
     public function scholarship(Request $request)
     {
         $data = $request->validate([
-            'name'         => ['required', 'string', 'max:120'],
-            'email'        => ['required', 'email:rfc', 'max:255'],
-            'phone'        => ['nullable', 'string', 'max:40'],
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email:rfc', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:40'],
             'organisation' => ['nullable', 'string', 'max:200'],
-            'amount'       => ['nullable', 'string', 'max:40'],
-            'message'      => ['nullable', 'string', 'max:3000'],
+            'amount' => ['nullable', 'string', 'max:40'],
+            'message' => ['nullable', 'string', 'max:3000'],
         ]);
 
         $this->throttle($request, 'scholarship', 3);
@@ -88,13 +88,13 @@ class FormController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name'      => ['required', 'string', 'max:120'],
-            'email'     => ['required', 'email:rfc', 'max:255'],
-            'phone'     => ['required', 'string', 'max:40'],
-            'dob'       => ['nullable', 'date'],
-            'location'  => ['nullable', 'string', 'max:120'],
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email:rfc', 'max:255'],
+            'phone' => ['required', 'string', 'max:40'],
+            'dob' => ['nullable', 'date'],
+            'location' => ['nullable', 'string', 'max:120'],
             'programme' => ['required', 'in:msingi,imarisha,stawi,daraja'],
-            'message'   => ['nullable', 'string', 'max:3000'],
+            'message' => ['nullable', 'string', 'max:3000'],
         ]);
 
         $this->throttle($request, 'register', 3);
@@ -117,7 +117,9 @@ class FormController extends Controller
     protected function notify(string $subject, array $payload): void
     {
         $to = config('mail.notify_email', env('CONTACT_NOTIFY_EMAIL'));
-        if (! $to) return;
+        if (! $to) {
+            return;
+        }
 
         try {
             Mail::raw(json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), function ($m) use ($to, $subject) {

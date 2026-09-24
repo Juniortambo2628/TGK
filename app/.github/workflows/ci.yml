@@ -1,0 +1,244 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test & autofix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, pdo_mysql, xml, ctype, json, curl, tokenizer, openssl, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Get Composer cache dir
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+
+      - name: Install PHP dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Copy environment (testing)
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Prepare test database (sqlite)
+        run: |
+          touch database/database.sqlite
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env || true
+          sed -i 's|^# DB_DATABASE=.*|DB_DATABASE='"$PWD"'/database/database.sqlite|' .env || true
+          echo "DB_DATABASE=$PWD/database/database.sqlite" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          php artisan config:clear
+          php artisan migrate --force
+
+      - name: Laravel Pint (autofix)
+        run: |
+          vendor/bin/pint --test || true
+          vendor/bin/pint || true
+
+      - name: Commit Pint autofixes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git diff --cached --quiet || git commit -m "style: apply Laravel Pint autofixes [skip ci]"
+            git push
+          fi
+
+      - name: PHPUnit
+        run: php artisan test
+
+      - name: Frontend production build
+        run: npm run build
+
+      - name: Assert SEO/SSR artifacts
+        run: |
+          test -f public/build/manifest.json
+          # SSR bundle is optional on shared hosting but must build when enabled
+          npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-build
+          path: public/build
+          retention-days: 1
+
+  deploy:
+    name: Deploy to cPanel
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP (packaging)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, pdo_mysql, xml, ctype, json, curl, tokenizer, openssl, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Download previous public build (if needed)
+        uses: actions/download-artifact@v4
+        with:
+          name: public-build
+          path: public/build
+        continue-on-error: true
+
+      - name: Package release (composer prod + tar)
+        id: package
+        run: |
+          chmod +x scripts/deploy/package-release.sh
+          ./scripts/deploy/package-release.sh dist "${GITHUB_SHA::7}"
+          echo "archive=$(ls dist/release-*.tar.gz | head -n1)" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "ERROR: SSH_PRIVATE_KEY secret is not set"
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          # Normalize possible Windows CRLF in pasted secret
+          sed -i 's/\r$//' ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Upload release + deploy script (SCP)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
+        run: |
+          set -euo pipefail
+          RELEASE_ID="${GITHUB_SHA::7}"
+          REMOTE_CORE="/home/${SSH_USER}/TGK-core"
+          REMOTE_PUB="/home/${SSH_USER}/TGK-public"
+          ARCHIVE="${{ steps.package.outputs.archive }}"
+          BASENAME="release-${RELEASE_ID}.tar.gz"
+
+          ssh -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new "${SSH_USER}@${SSH_HOST}" \
+            "mkdir -p '${REMOTE_CORE}/releases' '${REMOTE_PUB}'"
+
+          scp -P "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
+            scripts/deploy/server-deploy.sh \
+            "${SSH_USER}@${SSH_HOST}:${REMOTE_CORE}/server-deploy.sh"
+
+          scp -P "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
+            "$ARCHIVE" \
+            "${SSH_USER}@${SSH_HOST}:${REMOTE_CORE}/releases/${BASENAME}"
+
+          echo "Uploaded ${BASENAME}"
+
+      - name: Run server deploy
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
+        run: |
+          set -euo pipefail
+          RELEASE_ID="${GITHUB_SHA::7}"
+          ssh -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new "${SSH_USER}@${SSH_HOST}" \
+            "export RELEASE_ID='${RELEASE_ID}'; \
+             export CORE_DIR=\"\$HOME/TGK-core\"; \
+             export PUBLIC_DIR=\"\$HOME/TGK-public\"; \
+             export RELEASE_ARCHIVE=\"\$CORE_DIR/releases/release-\${RELEASE_ID}.tar.gz\"; \
+             export KEEP_RELEASES=3; \
+             chmod +x \"\$CORE_DIR/server-deploy.sh\"; \
+             bash \"\$CORE_DIR/server-deploy.sh\""
+
+      - name: Smoke check public URL
+        run: |
+          set -euo pipefail
+          # Wait briefly for opcache/FS
+          sleep 5
+          code=$(curl -sS -o /tmp/home.html -w '%{http_code}' -L --max-time 30 https://goodkenyan.org/ || true)
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "Homepage did not return 200"
+            head -c 2000 /tmp/home.html || true
+            exit 1
+          fi
+          grep -qi 'Good Kenyan\|<!DOCTYPE html' /tmp/home.html
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://goodkenyan.org/sitemap.xml || true)
+          echo "sitemap HTTP $code"
+          [ "$code" = "200" ]
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://goodkenyan.org/robots.txt || true)
+          echo "robots HTTP $code"
+          [ "$code" = "200" ]
+
+      - name: Discard SSH key material
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519 || true

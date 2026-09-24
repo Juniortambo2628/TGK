@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Post;
 use Tests\TestCase;
 
 class SeoTest extends TestCase
@@ -22,7 +23,7 @@ class SeoTest extends TestCase
 
     public function test_story_page_has_article_and_breadcrumb_json_ld(): void
     {
-        $slug = \App\Models\Post::published()->first()?->slug;
+        $slug = Post::published()->first()?->slug;
         if (! $slug) {
             $this->markTestSkipped('No published stories seeded.');
         }

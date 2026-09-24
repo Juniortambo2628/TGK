@@ -27,7 +27,7 @@ class ContentController extends Controller
 
         $blocks = ContentBlock::where('page', $page)->get()->mapWithKeys(fn ($b) => [$b->key => $b->text ?? $b->data]);
 
-        return Inertia::render('Admin/Content/' . $this->pageToComponent($page), [
+        return Inertia::render('Admin/Content/'.$this->pageToComponent($page), [
             'page' => $this->pages[$page],
             'pageSlug' => $page,
             'blocks' => $blocks,

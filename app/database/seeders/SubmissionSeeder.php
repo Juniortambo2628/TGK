@@ -22,16 +22,16 @@ class SubmissionSeeder extends Seeder
         Subscriber::truncate();
 
         $names = [
-            'Amina Wanjiru'     => ['programme' => 'Msingi', 'location' => 'Nairobi (Kibera)', 'email' => 'amina.w@gmail.com', 'phone' => '+254 712 345 678'],
-            'Brian Kiprop'      => ['programme' => 'Imarisha', 'location' => 'Eldoret (Juakali)', 'email' => 'brian.kip@yahoo.com', 'phone' => '+254 723 456 789'],
-            'Faith Chebet'      => ['programme' => 'Daraja', 'location' => 'Eldoret (Turbo)', 'email' => 'faith.c@gmail.com', 'phone' => '+254 734 567 890'],
-            'Kevin Omondi'      => ['programme' => 'Stawi', 'location' => 'Nairobi (Mathare)', 'email' => 'omondi.k@gmail.com', 'phone' => '+254 745 678 901'],
-            'Mercy Akinyi'      => ['programme' => 'Msingi', 'location' => 'Nairobi (Mukuru)', 'email' => 'mercy.akinyi@outlook.com', 'phone' => '+254 756 789 012'],
-            'Dennis Mwangi'     => ['programme' => 'Imarisha', 'location' => 'Nairobi (Eastleigh)', 'email' => 'dmwangi@gmail.com', 'phone' => '+254 767 890 123'],
-            'Sharon Jepkoech'   => ['programme' => 'Daraja', 'location' => 'Eldoret (Kimumu)', 'email' => 'sharon.j@gmail.com', 'phone' => '+254 778 901 234'],
-            'Victor Mutua'      => ['programme' => 'Msingi', 'location' => 'Machakos / Nairobi', 'email' => 'vmutua@gmail.com', 'phone' => '+254 789 012 345'],
-            'Grace Nyambura'    => ['programme' => 'Stawi', 'location' => 'Nairobi (Kasarani)', 'email' => 'grace.nyam@gmail.com', 'phone' => '+254 790 123 456'],
-            'Emmanuel Kibet'    => ['programme' => 'Imarisha', 'location' => 'Eldoret (Elgon View)', 'email' => 'ekibet@gmail.com', 'phone' => '+254 701 234 567'],
+            'Amina Wanjiru' => ['programme' => 'Msingi', 'location' => 'Nairobi (Kibera)', 'email' => 'amina.w@gmail.com', 'phone' => '+254 712 345 678'],
+            'Brian Kiprop' => ['programme' => 'Imarisha', 'location' => 'Eldoret (Juakali)', 'email' => 'brian.kip@yahoo.com', 'phone' => '+254 723 456 789'],
+            'Faith Chebet' => ['programme' => 'Daraja', 'location' => 'Eldoret (Turbo)', 'email' => 'faith.c@gmail.com', 'phone' => '+254 734 567 890'],
+            'Kevin Omondi' => ['programme' => 'Stawi', 'location' => 'Nairobi (Mathare)', 'email' => 'omondi.k@gmail.com', 'phone' => '+254 745 678 901'],
+            'Mercy Akinyi' => ['programme' => 'Msingi', 'location' => 'Nairobi (Mukuru)', 'email' => 'mercy.akinyi@outlook.com', 'phone' => '+254 756 789 012'],
+            'Dennis Mwangi' => ['programme' => 'Imarisha', 'location' => 'Nairobi (Eastleigh)', 'email' => 'dmwangi@gmail.com', 'phone' => '+254 767 890 123'],
+            'Sharon Jepkoech' => ['programme' => 'Daraja', 'location' => 'Eldoret (Kimumu)', 'email' => 'sharon.j@gmail.com', 'phone' => '+254 778 901 234'],
+            'Victor Mutua' => ['programme' => 'Msingi', 'location' => 'Machakos / Nairobi', 'email' => 'vmutua@gmail.com', 'phone' => '+254 789 012 345'],
+            'Grace Nyambura' => ['programme' => 'Stawi', 'location' => 'Nairobi (Kasarani)', 'email' => 'grace.nyam@gmail.com', 'phone' => '+254 790 123 456'],
+            'Emmanuel Kibet' => ['programme' => 'Imarisha', 'location' => 'Eldoret (Elgon View)', 'email' => 'ekibet@gmail.com', 'phone' => '+254 701 234 567'],
         ];
 
         $statuses = ['pending', 'reviewed', 'approved', 'approved', 'pending'];
@@ -40,14 +40,14 @@ class SubmissionSeeder extends Seeder
         foreach ($names as $name => $info) {
             $date = Carbon::now()->subDays(rand(1, 90));
             Registration::create([
-                'name'       => $name,
-                'email'      => $info['email'],
-                'phone'      => $info['phone'],
-                'dob'        => Carbon::now()->subYears(rand(18, 24)),
-                'location'   => $info['location'],
-                'programme'  => $info['programme'],
-                'message'    => 'Looking forward to building digital and entrepreneurial skills to launch a sustainable career.',
-                'status'     => $statuses[$i % count($statuses)],
+                'name' => $name,
+                'email' => $info['email'],
+                'phone' => $info['phone'],
+                'dob' => Carbon::now()->subYears(rand(18, 24)),
+                'location' => $info['location'],
+                'programme' => $info['programme'],
+                'message' => 'Looking forward to building digital and entrepreneurial skills to launch a sustainable career.',
+                'status' => $statuses[$i % count($statuses)],
                 'created_at' => $date,
                 'updated_at' => $date,
             ]);
@@ -65,15 +65,15 @@ class SubmissionSeeder extends Seeder
         foreach ($mentors as $idx => $m) {
             $date = Carbon::now()->subDays(rand(2, 60));
             MentorApplication::create([
-                'name'            => $m['name'],
-                'email'           => $m['email'],
-                'phone'           => $m['phone'],
-                'profession'      => $m['profession'],
+                'name' => $m['name'],
+                'email' => $m['email'],
+                'phone' => $m['phone'],
+                'profession' => $m['profession'],
                 'hours_per_month' => $m['hours'],
-                'message'         => 'Committed to empowering young people with structured mentorship and career guidance.',
-                'status'          => ($idx % 2 === 0) ? 'approved' : 'pending',
-                'created_at'      => $date,
-                'updated_at'      => $date,
+                'message' => 'Committed to empowering young people with structured mentorship and career guidance.',
+                'status' => ($idx % 2 === 0) ? 'approved' : 'pending',
+                'created_at' => $date,
+                'updated_at' => $date,
             ]);
         }
 
@@ -86,11 +86,11 @@ class SubmissionSeeder extends Seeder
         foreach ($contacts as $c) {
             $date = Carbon::now()->subDays(rand(1, 30));
             ContactMessage::create([
-                'name'       => $c['name'],
-                'email'      => $c['email'],
-                'phone'      => '+254 700 111 222',
-                'topic'      => $c['topic'],
-                'message'    => $c['message'],
+                'name' => $c['name'],
+                'email' => $c['email'],
+                'phone' => '+254 700 111 222',
+                'topic' => $c['topic'],
+                'message' => $c['message'],
                 'is_handled' => false,
                 'created_at' => $date,
                 'updated_at' => $date,
@@ -105,15 +105,15 @@ class SubmissionSeeder extends Seeder
         foreach ($scholarships as $s) {
             $date = Carbon::now()->subDays(rand(5, 20));
             ScholarshipApplication::create([
-                'name'         => $s['name'],
-                'email'        => $s['email'],
-                'phone'        => '+254 700 888 999',
+                'name' => $s['name'],
+                'email' => $s['email'],
+                'phone' => '+254 700 888 999',
                 'organisation' => $s['organisation'],
-                'amount'       => $s['amount'],
-                'message'      => $s['message'],
-                'status'       => 'approved',
-                'created_at'   => $date,
-                'updated_at'   => $date,
+                'amount' => $s['amount'],
+                'message' => $s['message'],
+                'status' => 'approved',
+                'created_at' => $date,
+                'updated_at' => $date,
             ]);
         }
 
@@ -128,7 +128,7 @@ class SubmissionSeeder extends Seeder
 
         foreach ($emails as $email) {
             Subscriber::create([
-                'email'      => $email,
+                'email' => $email,
                 'created_at' => Carbon::now()->subDays(rand(1, 45)),
             ]);
         }

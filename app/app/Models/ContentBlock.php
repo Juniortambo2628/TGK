@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 class ContentBlock extends Model
 {
     protected $fillable = ['page', 'key', 'text', 'data'];
+
     protected $casts = ['data' => 'array'];
 
     protected static string $cachePrefix = 'cms.page.';
@@ -20,6 +21,7 @@ class ContentBlock extends Model
             foreach ($rows as $row) {
                 $out[$row->key] = $row->data !== null ? $row->data : $row->text;
             }
+
             return $out;
         });
     }

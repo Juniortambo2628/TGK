@@ -15,11 +15,11 @@ class PostSeeder extends Seeder
             Post::updateOrCreate(
                 ['slug' => $s['slug']],
                 [
-                    'title'        => $s['title'],
-                    'excerpt'      => $s['excerpt'],
-                    'body'         => $s['body'],
-                    'hero_image'   => $s['hero_image'],
-                    'seo_title'    => $s['title'],
+                    'title' => $s['title'],
+                    'excerpt' => $s['excerpt'],
+                    'body' => $s['body'],
+                    'hero_image' => $s['hero_image'],
+                    'seo_title' => $s['title'],
                     'seo_description' => $s['excerpt'],
                     'published_at' => $s['published_at'],
                 ]

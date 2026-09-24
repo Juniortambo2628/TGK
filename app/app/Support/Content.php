@@ -20,6 +20,7 @@ use App\Models\ContentBlock;
 class Content
 {
     protected string $page;
+
     protected array $blocks;
 
     protected static array $cache = [];
@@ -44,18 +45,21 @@ class Content
     public function text(string $key, string $default = ''): string
     {
         $v = $this->blocks[$key] ?? null;
+
         return is_string($v) ? $v : $default;
     }
 
     public function html(string $key, string $default = ''): string
     {
         $v = $this->blocks[$key] ?? null;
+
         return Html::purify(is_string($v) ? $v : $default);
     }
 
     public function array(string $key, array $default = []): array
     {
         $v = $this->blocks[$key] ?? null;
+
         return is_array($v) ? $v : $default;
     }
 
@@ -73,6 +77,7 @@ class Content
                 $out[$k] = $v;
             }
         }
+
         return $out;
     }
 }

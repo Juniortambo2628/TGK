@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Post extends Model
 {
     protected $fillable = [
-        'slug','title','excerpt','body','hero_image','seo_title','seo_description','published_at',
+        'slug', 'title', 'excerpt', 'body', 'hero_image', 'seo_title', 'seo_description', 'published_at',
     ];
 
     protected $casts = [

@@ -3,21 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
     protected $primaryKey = 'key';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = ['key', 'value', 'type', 'updated_at'];
+
     protected $casts = ['value' => 'array', 'updated_at' => 'datetime'];
 
     protected static string $cacheKey = 'settings.all';
 
-    public static function all($columns = ['*']): \Illuminate\Support\Collection
+    public static function all($columns = ['*']): Collection
     {
         return Cache::rememberForever(self::$cacheKey, function () {
             return parent::query()->get()->keyBy('key')->map(fn ($s) => $s->value);
@@ -28,6 +33,7 @@ class Setting extends Model
     {
         $all = self::all();
         $value = $all[$key] ?? null;
+
         // Values were json_encoded when stored; casts decode them to array/scalar.
         return $value ?? $default;
     }

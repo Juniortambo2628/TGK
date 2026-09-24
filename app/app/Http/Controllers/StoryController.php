@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Support\Content;
 use Inertia\Inertia;
 
 class StoryController extends Controller
@@ -16,7 +17,7 @@ class StoryController extends Controller
 
         return Inertia::render('Stories/Index', [
             'stories' => $stories,
-            'cms' => \App\Support\Content::for('stories')->toShare(),
+            'cms' => Content::for('stories')->toShare(),
             'seo' => [
                 'title' => 'Stories · Good Kenyan Foundation',
                 'description' => 'Named journeys, real outcomes. Read stories from Good Kenyan Foundation programme graduates in their own words — from first skills to first income.',

@@ -20,6 +20,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 class ImageOptimizer
 {
     public const MAX_DIMENSION = 2048;
+
     public const DEFAULT_QUALITY = 82;
 
     /**
@@ -36,8 +37,9 @@ class ImageOptimizer
         $mime = $file->getMimeType() ?: 'image/jpeg';
 
         // Non-images (e.g. PDF, SVG) pass through with standard storage
-        if (!static::isSupportedImage($mime, $extension)) {
+        if (! static::isSupportedImage($mime, $extension)) {
             $filename = str($file->hashName())->beforeLast('.').'.'.$extension;
+
             return $file->storeAs($directory, $filename, $disk);
         }
 
@@ -61,7 +63,7 @@ class ImageOptimizer
      */
     public static function optimizeInPlace(string $absolutePath): array
     {
-        if (!file_exists($absolutePath) || !is_file($absolutePath)) {
+        if (! file_exists($absolutePath) || ! is_file($absolutePath)) {
             return ['saved' => 0, 'old_size' => 0, 'new_size' => 0];
         }
 
@@ -69,7 +71,7 @@ class ImageOptimizer
         $mime = @mime_content_type($absolutePath) ?: 'image/jpeg';
         $ext = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
 
-        if (!static::isSupportedImage($mime, $ext)) {
+        if (! static::isSupportedImage($mime, $ext)) {
             return ['saved' => 0, 'old_size' => $oldSize, 'new_size' => $oldSize];
         }
 
@@ -82,17 +84,17 @@ class ImageOptimizer
 
             return [
                 'saved_percent' => max(0, $percent),
-                'old_size'      => $oldSize,
-                'new_size'      => $newSize,
-                'saved_bytes'   => max(0, $oldSize - $newSize),
+                'old_size' => $oldSize,
+                'new_size' => $newSize,
+                'saved_bytes' => max(0, $oldSize - $newSize),
             ];
         }
 
         return [
             'saved_percent' => 0,
-            'old_size'      => $oldSize,
-            'new_size'      => $oldSize,
-            'saved_bytes'   => 0,
+            'old_size' => $oldSize,
+            'new_size' => $oldSize,
+            'saved_bytes' => 0,
         ];
     }
 
@@ -105,13 +107,13 @@ class ImageOptimizer
         array $cropData,
         ?string $destAbsolutePath = null
     ): ?string {
-        if (!file_exists($sourceAbsolutePath)) {
+        if (! file_exists($sourceAbsolutePath)) {
             return null;
         }
 
         $mime = @mime_content_type($sourceAbsolutePath) ?: 'image/jpeg';
         $src = static::createGdImage($sourceAbsolutePath, $mime);
-        if (!$src) {
+        if (! $src) {
             return null;
         }
 
@@ -138,6 +140,7 @@ class ImageOptimizer
 
         if ($w <= 0 || $h <= 0) {
             imagedestroy($src);
+
             return null;
         }
 
@@ -168,14 +171,14 @@ class ImageOptimizer
     protected static function optimizeBinary(string $filePath, string $mime): string
     {
         $image = static::createGdImage($filePath, $mime);
-        if (!$image) {
+        if (! $image) {
             return (string) file_get_contents($filePath);
         }
 
         // Fix EXIF orientation if JPEG
         if (in_array($mime, ['image/jpeg', 'image/jpg']) && function_exists('exif_read_data')) {
             $exif = @exif_read_data($filePath);
-            if (!empty($exif['Orientation'])) {
+            if (! empty($exif['Orientation'])) {
                 $image = static::orientGdImage($image, $exif['Orientation']);
             }
         }
@@ -228,17 +231,17 @@ class ImageOptimizer
     {
         return match ($mime) {
             'image/jpeg', 'image/jpg' => @imagecreatefromjpeg($path) ?: null,
-            'image/png'               => @imagecreatefrompng($path) ?: null,
-            'image/webp'              => function_exists('imagecreatefromwebp') ? (@imagecreatefromwebp($path) ?: null) : null,
-            'image/gif'               => @imagecreatefromgif($path) ?: null,
-            default                   => @imagecreatefromstring((string) file_get_contents($path)) ?: null,
+            'image/png' => @imagecreatefrompng($path) ?: null,
+            'image/webp' => function_exists('imagecreatefromwebp') ? (@imagecreatefromwebp($path) ?: null) : null,
+            'image/gif' => @imagecreatefromgif($path) ?: null,
+            default => @imagecreatefromstring((string) file_get_contents($path)) ?: null,
         };
     }
 
     protected static function saveGdImage(\GdImage $image, string $path, string $mime, int $quality): bool
     {
         $dir = dirname($path);
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
 
@@ -248,6 +251,7 @@ class ImageOptimizer
             imagepalettetotruecolor($image);
             imagealphablending($image, true);
             imagesavealpha($image, true);
+
             return imagewebp($image, $path, $quality);
         }
 
@@ -276,6 +280,7 @@ class ImageOptimizer
 
         if ($rotated !== false) {
             imagedestroy($image);
+
             return $rotated;
         }
 

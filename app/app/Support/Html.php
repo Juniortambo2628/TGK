@@ -16,7 +16,9 @@ class Html
 
     public static function purify(?string $html): string
     {
-        if ($html === null || $html === '') return '';
+        if ($html === null || $html === '') {
+            return '';
+        }
 
         // Drop dangerous elements entirely, contents and all.
         $html = preg_replace('#<(script|style|iframe|object|embed|form|input|button|textarea|meta|link)[^>]*>.*?</\1>#is', '', $html);

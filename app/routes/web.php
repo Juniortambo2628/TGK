@@ -1,9 +1,27 @@
 <?php
 
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\ContactMessageController;
+use App\Http\Controllers\Admin\ContentController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\MentorApplicationController;
+use App\Http\Controllers\Admin\PartnerController;
+use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\RegistrationController;
+use App\Http\Controllers\Admin\ScholarshipApplicationController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SubscriberController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\StoryController;
+use App\Models\Post;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\Tags\Url;
 
 // Public pages
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -36,83 +54,83 @@ Route::post('/get-involved/register', [FormController::class, 'register'])->name
 // Admin (React + Inertia)
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard — root /admin goes here
-    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
     // Content editors (9 pages)
-    Route::get('/content/{page}', [\App\Http\Controllers\Admin\ContentController::class, 'edit'])->name('content.edit');
-    Route::put('/content/{page}', [\App\Http\Controllers\Admin\ContentController::class, 'update'])->name('content.update');
+    Route::get('/content/{page}', [ContentController::class, 'edit'])->name('content.edit');
+    Route::put('/content/{page}', [ContentController::class, 'update'])->name('content.update');
 
     // Posts (Stories)
-    Route::resource('posts', \App\Http\Controllers\Admin\PostController::class)->except(['show']);
+    Route::resource('posts', PostController::class)->except(['show']);
 
     // Partners
-    Route::resource('partners', \App\Http\Controllers\Admin\PartnerController::class)->except(['show']);
+    Route::resource('partners', PartnerController::class)->except(['show']);
 
     // Submissions
-    Route::get('/contact-messages', [\App\Http\Controllers\Admin\ContactMessageController::class, 'index'])->name('contact-messages.index');
-    Route::patch('/contact-messages/{contactMessage}/status', [\App\Http\Controllers\Admin\ContactMessageController::class, 'updateStatus'])->name('contact-messages.status');
-    Route::delete('/contact-messages/{contactMessage}', [\App\Http\Controllers\Admin\ContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
+    Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
+    Route::patch('/contact-messages/{contactMessage}/status', [ContactMessageController::class, 'updateStatus'])->name('contact-messages.status');
+    Route::delete('/contact-messages/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
 
-    Route::get('/mentor-applications', [\App\Http\Controllers\Admin\MentorApplicationController::class, 'index'])->name('mentor-applications.index');
-    Route::patch('/mentor-applications/{mentorApplication}/status', [\App\Http\Controllers\Admin\MentorApplicationController::class, 'updateStatus'])->name('mentor-applications.status');
-    Route::delete('/mentor-applications/{mentorApplication}', [\App\Http\Controllers\Admin\MentorApplicationController::class, 'destroy'])->name('mentor-applications.destroy');
+    Route::get('/mentor-applications', [MentorApplicationController::class, 'index'])->name('mentor-applications.index');
+    Route::patch('/mentor-applications/{mentorApplication}/status', [MentorApplicationController::class, 'updateStatus'])->name('mentor-applications.status');
+    Route::delete('/mentor-applications/{mentorApplication}', [MentorApplicationController::class, 'destroy'])->name('mentor-applications.destroy');
 
-    Route::get('/registrations', [\App\Http\Controllers\Admin\RegistrationController::class, 'index'])->name('registrations.index');
-    Route::patch('/registrations/{registration}/status', [\App\Http\Controllers\Admin\RegistrationController::class, 'updateStatus'])->name('registrations.status');
-    Route::delete('/registrations/{registration}', [\App\Http\Controllers\Admin\RegistrationController::class, 'destroy'])->name('registrations.destroy');
+    Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');
+    Route::patch('/registrations/{registration}/status', [RegistrationController::class, 'updateStatus'])->name('registrations.status');
+    Route::delete('/registrations/{registration}', [RegistrationController::class, 'destroy'])->name('registrations.destroy');
 
-    Route::get('/scholarship-applications', [\App\Http\Controllers\Admin\ScholarshipApplicationController::class, 'index'])->name('scholarship-applications.index');
-    Route::patch('/scholarship-applications/{scholarshipApplication}/status', [\App\Http\Controllers\Admin\ScholarshipApplicationController::class, 'updateStatus'])->name('scholarship-applications.status');
-    Route::delete('/scholarship-applications/{scholarshipApplication}', [\App\Http\Controllers\Admin\ScholarshipApplicationController::class, 'destroy'])->name('scholarship-applications.destroy');
+    Route::get('/scholarship-applications', [ScholarshipApplicationController::class, 'index'])->name('scholarship-applications.index');
+    Route::patch('/scholarship-applications/{scholarshipApplication}/status', [ScholarshipApplicationController::class, 'updateStatus'])->name('scholarship-applications.status');
+    Route::delete('/scholarship-applications/{scholarshipApplication}', [ScholarshipApplicationController::class, 'destroy'])->name('scholarship-applications.destroy');
 
-    Route::get('/subscribers', [\App\Http\Controllers\Admin\SubscriberController::class, 'index'])->name('subscribers.index');
-    Route::delete('/subscribers/{subscriber}', [\App\Http\Controllers\Admin\SubscriberController::class, 'destroy'])->name('subscribers.destroy');
+    Route::get('/subscribers', [SubscriberController::class, 'index'])->name('subscribers.index');
+    Route::delete('/subscribers/{subscriber}', [SubscriberController::class, 'destroy'])->name('subscribers.destroy');
 
     // Users
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['show']);
+    Route::resource('users', UserController::class)->except(['show']);
 
     // Media Gallery
-    Route::get('/media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
-    Route::post('/media/upload', [\App\Http\Controllers\Admin\MediaController::class, 'upload'])->name('media.upload');
-    Route::delete('/media', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
-    Route::post('/media/optimize', [\App\Http\Controllers\Admin\MediaController::class, 'optimize'])->name('media.optimize');
-    Route::post('/media/crop', [\App\Http\Controllers\Admin\MediaController::class, 'crop'])->name('media.crop');
+    Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+    Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
+    Route::delete('/media', [MediaController::class, 'destroy'])->name('media.destroy');
+    Route::post('/media/optimize', [MediaController::class, 'optimize'])->name('media.optimize');
+    Route::post('/media/crop', [MediaController::class, 'crop'])->name('media.crop');
 
     // Settings
-    Route::get('/settings/{tab?}', [\App\Http\Controllers\Admin\SettingController::class, 'edit'])->name('settings.edit');
-    Route::put('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+    Route::get('/settings/{tab?}', [SettingController::class, 'edit'])->name('settings.edit');
+    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 
     // Profile
-    Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 // Admin login (public)
 Route::middleware('guest')->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/login', [\App\Http\Controllers\Admin\AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.post');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 });
 
-Route::post('/admin/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->middleware('auth')->name('admin.logout');
+Route::post('/admin/logout', [AuthController::class, 'logout'])->middleware('auth')->name('admin.logout');
 
 // Sitemap.xml (generated on demand, cached 6h)
 Route::get('/sitemap.xml', function () {
-    $xml = \Illuminate\Support\Facades\Cache::remember('sitemap.xml', now()->addHours(6), function () {
-        $sitemap = \Spatie\Sitemap\Sitemap::create()
-            ->add(\Spatie\Sitemap\Tags\Url::create('/')->setPriority(1.0))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/about'))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/our-model'))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/regina-yego'))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/stawi'))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/stories'))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/partners'))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/get-involved'))
-            ->add(\Spatie\Sitemap\Tags\Url::create('/contact'));
+    $xml = Cache::remember('sitemap.xml', now()->addHours(6), function () {
+        $sitemap = Sitemap::create()
+            ->add(Url::create('/')->setPriority(1.0))
+            ->add(Url::create('/about'))
+            ->add(Url::create('/our-model'))
+            ->add(Url::create('/regina-yego'))
+            ->add(Url::create('/stawi'))
+            ->add(Url::create('/stories'))
+            ->add(Url::create('/partners'))
+            ->add(Url::create('/get-involved'))
+            ->add(Url::create('/contact'));
 
-        foreach (\App\Models\Post::published()->get() as $p) {
+        foreach (Post::published()->get() as $p) {
             $sitemap->add(
-                \Spatie\Sitemap\Tags\Url::create('/stories/'.$p->slug)
+                Url::create('/stories/'.$p->slug)
                     ->setLastModificationDate($p->updated_at)
                     ->setPriority(0.7)
             );
