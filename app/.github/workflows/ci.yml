@@ -153,6 +153,22 @@ jobs:
           path: public/build
         continue-on-error: true
 
+      - name: Materialize production .env from secret
+        env:
+          PROD_ENV: ${{ secrets.PROD_ENV }}
+        run: |
+          # .env.production is gitignored — inject from GitHub secret so the
+          # tarball always ships a working .env (server prefers its own if present).
+          if [ -n "$PROD_ENV" ]; then
+            printf '%s\n' "$PROD_ENV" > .env.production
+            sed -i 's/\r$//' .env.production
+            echo "Wrote .env.production from PROD_ENV secret"
+          elif [ -f .env.production ]; then
+            echo "Using checked-in .env.production (should not happen — file is gitignored)"
+          else
+            echo "WARNING: PROD_ENV secret not set and no .env.production — first deploy will fail unless server already has ~/TGK-core/.env"
+          fi
+
       - name: Package release (composer prod + tar)
         id: package
         run: |

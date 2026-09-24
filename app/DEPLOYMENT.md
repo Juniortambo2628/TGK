@@ -50,8 +50,14 @@ Repo → **Settings → Secrets and variables → Actions → New repository sec
 | `SSH_HOST` | `184.94.213.150` |
 | `SSH_USER` | `goodmshd` |
 | `SSH_PORT` | `22` |
+| `PROD_ENV` | Full contents of local `.env.production` (same lines as the file, pasted as one secret). CI writes this into the release tar as `.env` so the first deploy has credentials. The server's existing `~/TGK-core/.env` always wins if present. |
 
-Optional environment protection: create GitHub Environment **`production`** (deploy job uses it).
+Also: repo → **Settings → Environments → New environment → `production`** (the deploy job references it; leave unprotected, or add required reviewers to gate deploys).
+
+**Alternative to `PROD_ENV`:** upload the env once manually before the first deploy:
+```bash
+scp -P 22 .env.production goodmshd@184.94.213.150:~/TGK-core/.env
+```
 
 ---
 
@@ -66,7 +72,8 @@ Optional environment protection: create GitHub Environment **`production`** (dep
    - `npm run build`  
 2. **deploy** job (`needs: test`, only on `push` to `main`)  
    - Rebuild assets  
-   - Package tar (composer `--no-dev`, ship `public/build`, ship `.env.production` as fallback `.env`)  
+   - Write `.env.production` from `PROD_ENV` secret  
+   - Package tar (composer `--no-dev`, ship `public/build`, ship `.env` fallback)  
    - SCP archive + `server-deploy.sh` (no rsync)  
    - SSH run `server-deploy.sh`: requirements → extract → preserve `.env`/storage → permissions → switch code → sync `TGK-public` → artisan migrate/optimize → prune old releases → structure checks  
    - HTTPS smoke check: `/`, `/sitemap.xml`, `/robots.txt`
@@ -124,7 +131,7 @@ No `.env` with production DB/SMTP passwords has ever been committed (history che
 Production credentials live only in:
 1. Local gitignored `.env.production`
 2. Server `~/TGK-core/.env` (preserved across deploys)
-3. GitHub secrets (SSH only — not DB/SMTP)
+3. GitHub secrets (`SSH_*` + `PROD_ENV` — encrypted, never printed in logs)
 
 ---
 
