@@ -67,8 +67,22 @@ foreach ([
     @mkdir(CORE_PATH.'/'.$dir, 0775, true);
 }
 
-// Migrations are required; caches/symlink are best-effort
-$failed += $run('migrate', ['--force' => true, '--no-interaction' => true]) !== 0 ? 1 : 0;
+// Bootstrap-only recovery: a half-built schema (no migration history) can't be
+// repaired with migrate — DDL isn't transactional. Safe because an initialized
+// DB always has rows in `migrations`.
+$hasHistory = false;
+try {
+    $hasHistory = \Illuminate\Support\Facades\DB::table('migrations')->count() > 0;
+} catch (Throwable) {
+    $hasHistory = false;
+}
+
+if ($hasHistory) {
+    $failed += $run('migrate', ['--force' => true, '--no-interaction' => true]) !== 0 ? 1 : 0;
+} else {
+    echo "No migration history — rebuilding schema with migrate:fresh\n";
+    $failed += $run('migrate:fresh', ['--force' => true, '--no-interaction' => true]) !== 0 ? 1 : 0;
+}
 $run('storage:link', ['--force' => true]); // OK if link already exists
 $run('config:cache');
 $run('route:cache');
