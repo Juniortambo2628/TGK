@@ -12,6 +12,7 @@
 declare(strict_types=1);
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 const CORE_PATH = '__CORE_PATH__';
 const HOOK_TOKEN = '__HOOK_TOKEN__';
@@ -72,7 +73,7 @@ foreach ([
 // DB always has rows in `migrations`.
 $hasHistory = false;
 try {
-    $hasHistory = \Illuminate\Support\Facades\DB::table('migrations')->count() > 0;
+    $hasHistory = DB::table('migrations')->count() > 0;
 } catch (Throwable) {
     $hasHistory = false;
 }
