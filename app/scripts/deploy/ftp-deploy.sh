@@ -57,8 +57,10 @@ trap 'rm -f "$CMDFILE"' EXIT
     echo 'set ssl:verify-certificate no'
   fi
   echo "open ${URL}"
+  echo 'set cmd:fail-exit no'
   echo "mkdir -p ${FTP_CORE_DIR}"
   echo "mkdir -p ${FTP_PUBLIC_DIR}"
+  echo 'set cmd:fail-exit yes'
 
   # Core: mirror stage, never touch live secrets/uploads/logs
   echo -n 'mirror -R --verbose --parallel=4 --delete-after'
