@@ -12,7 +12,7 @@
 #   PUBLIC_DIR_SRC  default dist/public-docroot
 #
 # Excludes keep server-only files (.env, live uploads, logs) from being
-# overwritten or deleted by mirror --delete-after.
+# overwritten or deleted by mirror --delete.
 
 set -euo pipefail
 
@@ -63,7 +63,7 @@ trap 'rm -f "$CMDFILE"' EXIT
   echo 'set cmd:fail-exit yes'
 
   # Core: mirror stage, never touch live secrets/uploads/logs
-  echo -n 'mirror -R --verbose --parallel=4 --delete-after'
+  echo -n 'mirror -R --verbose --parallel=4 --delete'
   printf -- ' --exclude-glob .env'
   printf -- ' --exclude-glob .env.*'
   printf -- ' --exclude-glob storage/logs/*'
@@ -82,7 +82,7 @@ trap 'rm -f "$CMDFILE"' EXIT
   printf ' %s/ %s/\n' "$STAGE_DIR" "$FTP_CORE_DIR"
 
   # Public docroot: never wipe a live /storage symlink target via mirror
-  echo -n 'mirror -R --verbose --parallel=4 --delete-after'
+  echo -n 'mirror -R --verbose --parallel=4 --delete'
   printf -- ' --exclude-glob storage'
   printf -- ' --exclude-glob storage/*'
   printf -- ' --exclude-glob hot'
