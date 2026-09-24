@@ -99,9 +99,6 @@ jobs:
             git push
           fi
 
-      - name: PHPUnit
-        run: php artisan test
-
       - name: Frontend production build
         run: npm run build
 
@@ -109,6 +106,9 @@ jobs:
         run: |
           test -f public/build/manifest.json
           test -f bootstrap/ssr/index.mjs -o -d bootstrap/ssr
+
+      - name: PHPUnit
+        run: php artisan test
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
