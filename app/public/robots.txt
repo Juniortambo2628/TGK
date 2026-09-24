@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 
-Sitemap: https://goodkenyan.org/sitemap.xml
+Sitemap: https://app.goodkenyan.org/sitemap.xml
