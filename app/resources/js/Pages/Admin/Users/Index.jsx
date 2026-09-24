@@ -54,6 +54,9 @@ export default function Index({ users = [] }) {
                     selectedCount={selectedCount}
                     onSelectAll={toggleSelectAll}
                     onDeselectAll={clearSelection}
+                    actions={[
+                        { label: 'New User', href: route('admin.users.create'), icon: 'plus', primary: true },
+                    ]}
                 />
 
                 <AdminCard>

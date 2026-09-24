@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import AdminHero from './AdminHero';
 import AdminCard from './AdminCard';
+import StickySaveBar from './StickySaveBar';
 import FileUploader from './FileUploader';
 import ProductsEditor from './ProductsEditor';
 import ListEditor from './ListEditor';
@@ -637,20 +638,13 @@ export default function ContentEditor({
                             )}
                         </div>
                     </AdminCard>
-
-                    <div className="flex items-center gap-4">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-lg bg-brand-red px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-red-deep hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                        >
-                            {processing ? 'Saving...' : 'Save changes'}
-                        </button>
-                        {recentlySuccessful && (
-                            <p className="text-sm font-medium text-green-600">Saved successfully.</p>
-                        )}
-                    </div>
                 </div>
+
+                <StickySaveBar
+                    processing={processing}
+                    recentlySuccessful={recentlySuccessful}
+                    submitLabel="Save changes"
+                />
             </form>
         </>
     );

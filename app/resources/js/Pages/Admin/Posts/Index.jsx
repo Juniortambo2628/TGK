@@ -65,6 +65,9 @@ export default function Index({ posts = [] }) {
                     selectedCount={selectedCount}
                     onSelectAll={toggleSelectAll}
                     onDeselectAll={clearSelection}
+                    actions={[
+                        { label: 'New Story', href: route('admin.posts.create'), icon: 'plus', primary: true },
+                    ]}
                 />
 
                 <AdminCard>

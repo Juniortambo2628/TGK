@@ -80,6 +80,19 @@ export default function MediaGallery({ media = [], folders = {} }) {
                     onFilterChange={setActiveFolder}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
+                    actions={[
+                        {
+                            label: 'Upload',
+                            icon: 'plus',
+                            primary: true,
+                            onClick: () => {
+                                setUploadedUrl(null);
+                                requestAnimationFrame(() => {
+                                    document.querySelector('.filepond--root input[type=file]')?.click();
+                                });
+                            },
+                        },
+                    ]}
                 />
 
                 {filteredMedia.length === 0 ? (

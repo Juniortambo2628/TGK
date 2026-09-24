@@ -93,6 +93,9 @@ export default function ScholarshipApplications({ applications = [] }) {
                     selectedCount={selectedIds.length}
                     onSelectAll={toggleSelectAll}
                     onDeselectAll={clearSelection}
+                    actions={[
+                        { label: 'Export CSV', icon: 'download', onClick: handleExport },
+                    ]}
                 />
 
                 <AdminCard>

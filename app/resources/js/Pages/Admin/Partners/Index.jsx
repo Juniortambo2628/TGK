@@ -65,6 +65,9 @@ export default function Index({ partners = [] }) {
                     selectedCount={selectedCount}
                     onSelectAll={toggleSelectAll}
                     onDeselectAll={clearSelection}
+                    actions={[
+                        { label: 'New Partner', href: route('admin.partners.create'), icon: 'plus', primary: true },
+                    ]}
                 />
 
                 <AdminCard>

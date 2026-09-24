@@ -64,6 +64,9 @@ export default function Subscribers({ subscribers = [] }) {
                     selectedCount={selectedIds.length}
                     onSelectAll={toggleSelectAll}
                     onDeselectAll={clearSelection}
+                    actions={[
+                        { label: 'Export', icon: 'download', onClick: handleExport },
+                    ]}
                 />
 
                 <AdminCard>

@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Link } from '@inertiajs/react';
 import ViewToggle from './ViewToggle';
-import { IconSearch, IconTrash, IconDownload } from './Icons';
+import { IconSearch, IconTrash, IconDownload, IconPlus } from './Icons';
 
 const bulkIcons = { trash: IconTrash, download: IconDownload };
+const actionIcons = { plus: IconPlus, download: IconDownload };
 
 export default function AdminToolbar({
     search = { value: '', onChange: () => {}, placeholder: 'Search...' },
@@ -12,12 +14,14 @@ export default function AdminToolbar({
     viewMode = 'list',
     onViewModeChange = () => {},
     bulkActions = null,
+    actions = null,
     selectedCount = 0,
     onSelectAll = () => {},
     onDeselectAll = () => {},
     children,
 }) {
     const hasBulkActions = bulkActions && bulkActions.length > 0;
+    const hasActions = actions && actions.length > 0;
 
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] lg:pl-[260px]">
@@ -89,6 +93,30 @@ export default function AdminToolbar({
                         })}
 
                         {children}
+
+                        {hasActions && actions.map((action, i) => {
+                            const Icon = actionIcons[action.icon];
+                            const className = `inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                                action.primary
+                                    ? 'bg-brand-red text-white hover:bg-brand-red-deep'
+                                    : 'bg-brand-panel text-brand-charcoal hover:bg-brand-hairline'
+                            }`;
+                            const content = (
+                                <>
+                                    {Icon && <Icon className="w-3.5 h-3.5" />}
+                                    {action.label}
+                                </>
+                            );
+                            return action.href ? (
+                                <Link key={`a-${i}`} href={action.href} className={className}>
+                                    {content}
+                                </Link>
+                            ) : (
+                                <button key={`a-${i}`} type="button" onClick={action.onClick} className={className}>
+                                    {content}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
