@@ -129,6 +129,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check deploy site URL is configured
+        env:
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+        run: |
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "ERROR: set the repository variable DEPLOY_URL (e.g. http://app.goodkenyan.org)"
+            exit 1
+          fi
+          echo "DEPLOY_URL=${DEPLOY_URL%/}"
+
       - name: Setup PHP (packaging)
         uses: shivammathur/setup-php@v2
         with:
@@ -186,6 +196,7 @@ jobs:
 
       - name: Run artisan deploy hook
         env:
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
@@ -195,6 +206,7 @@ jobs:
           CORE_PATH_REMOTE: ${{ secrets.CORE_PATH_REMOTE }}
         run: |
           set -euo pipefail
+          DEPLOY_URL="${DEPLOY_URL%/}"
           FTP_PORT="${FTP_PORT:-21}"
           FTP_PUBLIC_DIR="${FTP_PUBLIC_DIR:-TGK-public}"
           CORE_PATH_REMOTE="${CORE_PATH_REMOTE:-/home/goodmshd/TGK-core}"
@@ -225,7 +237,7 @@ jobs:
           echo "Invoking hook"
           set +e
           RESP=$(curl -sS -o /tmp/hook.out -w '%{http_code}' --max-time 120 \
-            "https://goodkenyan.org/${HOOK_NAME}?token=${TOKEN}")
+            "${DEPLOY_URL}/${HOOK_NAME}?token=${TOKEN}")
           set -e
           echo "HTTP ${RESP}"
           cat /tmp/hook.out || true
@@ -250,10 +262,13 @@ jobs:
           }
 
       - name: Smoke check public URL
+        env:
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
         run: |
           set -euo pipefail
+          DEPLOY_URL="${DEPLOY_URL%/}"
           sleep 5
-          code=$(curl -sS -o /tmp/home.html -w '%{http_code}' -L --max-time 30 https://goodkenyan.org/ || true)
+          code=$(curl -sS -o /tmp/home.html -w '%{http_code}' -L --max-time 30 "$DEPLOY_URL/" || true)
           echo "HTTP $code"
           if [ "$code" != "200" ]; then
             echo "Homepage did not return 200"
@@ -261,9 +276,9 @@ jobs:
             exit 1
           fi
           grep -qi 'Good Kenyan\|<!DOCTYPE html' /tmp/home.html
-          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://goodkenyan.org/sitemap.xml || true)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "$DEPLOY_URL/sitemap.xml" || true)
           echo "sitemap HTTP $code"
           [ "$code" = "200" ]
-          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://goodkenyan.org/robots.txt || true)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "$DEPLOY_URL/robots.txt" || true)
           echo "robots HTTP $code"
           [ "$code" = "200" ]
