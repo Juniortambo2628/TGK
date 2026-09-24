@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { FilePond } from '../../lib/filepond';
 import imageCompression from 'browser-image-compression';
 import { imageUrl } from '../../lib/urls';
+import { IconPencil, IconTrash } from './Icons';
 
 export default function FileUploader({
     value = null,

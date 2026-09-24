@@ -6,7 +6,7 @@ const variantMap = {
     msingi: 'red', imarisha: 'red', stawi: 'red', daraja: 'red',
 };
 
-export default function Badge({ children, variant = 'red' }) {
+export function Badge({ children, variant = 'red' }) {
     const variants = {
         red: 'bg-brand-red/10 text-brand-red',
         green: 'bg-green-50 text-green-700',
@@ -21,7 +21,7 @@ export default function Badge({ children, variant = 'red' }) {
     );
 }
 
-export function StatusBadge({ status }) {
+export default function StatusBadge({ status }) {
     if (!status) return null;
     const key = String(status).toLowerCase();
     const variant = variantMap[key] || 'grey';

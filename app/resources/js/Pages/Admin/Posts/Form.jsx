@@ -2,6 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import AdminFormLayout from '../../../Components/Admin/AdminFormLayout';
 import AdminCard from '../../../Components/Admin/AdminCard';
 import FileUploader from '../../../Components/Admin/FileUploader';
+import RichTextEditor from '../../../Components/Admin/RichTextEditor';
 
 function slugify(text) {
     return text
@@ -173,15 +174,12 @@ export default function Form({ post = null }) {
                 <label htmlFor="body" className="block text-sm font-bold text-brand-charcoal mb-1.5">
                     Body
                 </label>
-                <textarea
-                    id="body"
-                    rows={14}
+                <RichTextEditor
                     value={data.body}
-                    onChange={(e) => setData('body', e.target.value)}
-                    className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-brand-charcoal placeholder-brand-charcoal/40 outline-none transition-shadow focus:ring-2 focus:ring-brand-red/30 font-mono ${errors.body ? 'border-brand-red' : 'border-brand-hairline'}`}
-                    placeholder="Story content (HTML supported, rich text editor coming later)..."
+                    onChange={(html) => setData('body', html)}
+                    error={errors.body}
+                    placeholder="Write your story..."
                 />
-                {errors.body && <p className="mt-1.5 text-xs text-brand-red">{errors.body}</p>}
             </div>
 
             <div className="h-px w-full bg-brand-hairline" />
