@@ -7,7 +7,7 @@ import { IconUsers, IconAcademic, IconEnvelope, IconMegaphone } from '../../Comp
 
 function StatCard({ label, value, icon }) {
     return (
-        <div className="rounded-xl border-l-4 border-brand-red bg-brand-off p-5 shadow-soft">
+        <div className="rounded-xl bg-brand-off p-5 shadow-soft">
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-xs font-bold text-brand-charcoal/50">{label}</p>
