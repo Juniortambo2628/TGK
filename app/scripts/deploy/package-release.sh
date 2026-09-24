@@ -73,8 +73,11 @@ tar -czf "$ARCHIVE" -C "$STAGE" .
 echo "Created $ARCHIVE ($(du -h "$ARCHIVE" | cut -f1))"
 
 # Basic sanity
-tar -tzf "$ARCHIVE" | grep -q 'artisan' || { echo "ERROR: archive missing artisan"; exit 1; }
-tar -tzf "$ARCHIVE" | grep -q 'public/build/manifest.json' || { echo "ERROR: archive missing public/build/manifest.json"; exit 1; }
-tar -tzf "$ARCHIVE" | grep -q 'vendor/autoload.php' || { echo "ERROR: archive missing vendor/autoload.php"; exit 1; }
+LISTING="$(mktemp)"
+trap 'rm -f "$LISTING"' EXIT
+tar -tzf "$ARCHIVE" > "$LISTING"
+grep -q 'artisan' "$LISTING" || { echo "ERROR: archive missing artisan"; exit 1; }
+grep -q 'public/build/manifest.json' "$LISTING" || { echo "ERROR: archive missing public/build/manifest.json"; exit 1; }
+grep -q 'vendor/autoload.php' "$LISTING" || { echo "ERROR: archive missing vendor/autoload.php"; exit 1; }
 
 echo "ARCHIVE_PATH=$ARCHIVE" >> "${GITHUB_OUTPUT:-/dev/null}"

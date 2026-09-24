@@ -33,8 +33,9 @@ log "PHP:    $($PHP_BIN -v | head -n1)"
 log "Checking requirements…"
 command -v "$PHP_BIN" >/dev/null 2>&1 || { echo "ERROR: php CLI not found"; exit 1; }
 
+PHP_MODULES="$("$PHP_BIN" -m)"
 for ext in pdo_mysql mbstring openssl tokenizer xml ctype json curl fileinfo; do
-  if ! "$PHP_BIN" -m | grep -qi "^${ext}$"; then
+  if ! grep -qi "^${ext}$" <<< "$PHP_MODULES"; then
     echo "ERROR: missing PHP extension: $ext"
     exit 1
   fi
