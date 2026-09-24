@@ -22,7 +22,7 @@ class Post extends Model
 
     public function getHeroUrlAttribute(): ?string
     {
-        return PublicUrl::image($this->hero_image);
+        return PublicUrl::image($this->hero_image, null, 'images/stories/');
     }
 
     public function toPublicArray(): array

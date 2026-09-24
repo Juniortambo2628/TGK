@@ -18,6 +18,6 @@ class Partner extends Model
 
     public function getLogoUrlAttribute(): string
     {
-        return PublicUrl::image($this->logo) ?? asset('images/partners/placeholder.png');
+        return PublicUrl::image($this->logo, asset('images/partners/placeholder.png'), 'images/partners/');
     }
 }
