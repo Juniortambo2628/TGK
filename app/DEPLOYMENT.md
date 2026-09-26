@@ -1,141 +1,202 @@
-# Production deployment — goodkenyan.org (cPanel shared hosting)
+# Production deployment — goodkenyan.org / goodkenyan.com (cPanel + SSH)
 
-## Shared hosting & Inertia SSR
+Automated deploy: **push to `main` → CI (tests + autofix) → SSH deploy to cPanel.**
 
-**You cannot run `php artisan inertia:start-ssr` on typical cPanel shared hosting.**
-That command starts a long-lived Node process. Shared hosts only run PHP per request.
-
-What still works without SSR:
-- All SEO meta tags, Open Graph, JSON-LD are server-rendered in `resources/views/app.blade.php`
-- First HTML response is fully crawlable by Google
-- The React app hydrates client-side as before
-
-Production `.env` sets `INERTIA_SSR_ENABLED=false` (correct for this host).
-CI still builds the SSR bundle so you can enable it later on a VPS with Node.
-
----
-
-## Why FTP (not SSH)
-
-SSH ports (22, 1624, 2222, …) are **filtered** on this host — connection times out
-from both this machine and GitHub Actions. FTP port **21 is open** (verified).
-
-Deploy path: **GitHub Actions → FTP → cPanel**, then a one-shot PHP hook runs
-`artisan migrate` / caches over HTTPS (no SSH, no rsync).
+- **Canonical domain:** `https://goodkenyan.org`
+- **Second domain:** `goodkenyan.com` → **301-redirects** to `goodkenyan.org`
+  (redirect lives in `public/.htaccess`, so it applies no matter how the vhosts
+  are configured). Both domains share one document root.
+- **Transport:** SSH (key-based). Port **22** is open on the new GoDaddy server and
+  SSL is fixed. FTP is no longer used.
+- **No rsync on the host** — stale-file cleanup is done by fully replacing code
+  directories and mirroring the document root on every deploy.
 
 ---
 
 ## Server layout
 
-| Role | Path (filesystem) | Path (FTP, chroot to home) |
-|------|-------------------|----------------------------|
-| Document root (vhost) | `/home/goodmshd/TGK-public` | `TGK-public/` |
-| Laravel application | `/home/goodmshd/TGK-core` | `TGK-core/` |
-| Public storage | `/home/goodmshd/TGK-core/storage/app/public` → symlink `TGK-public/storage` | — |
+| Role | Filesystem path |
+|------|-----------------|
+| Document root (both domains) | `/home/a040j9v5l2vz/TGK-public` |
+| Laravel application (backend) | `/home/a040j9v5l2vz/TGK-core` |
+| Public uploads (`/storage` URL) | `/home/a040j9v5l2vz/TGK-core/storage/app/public` → symlink `TGK-public/storage` |
+| Rollback tarballs | `/home/a040j9v5l2vz/TGK-core/releases/release-<sha>.tar.gz` (last 3 kept) |
 
-`TGK-public/index.php` comes from `scripts/deploy/public-index.php` and boots
-`/home/goodmshd/TGK-core/bootstrap/app.php`.
+`TGK-public/index.php` is generated from `scripts/deploy/public-index.php` at
+deploy time with the backend path substituted in, so it boots
+`/home/a040j9v5l2vz/TGK-core`.
 
-> cPanel FTP usually chroots to the home directory — use **relative** paths
-> `TGK-core` / `TGK-public` (the defaults). If your FTP user is not chrooted,
-> set secrets to absolute paths instead.
-
----
-
-## GitHub → Secrets
-
-**Settings → Secrets and variables → Actions → New repository secret**
-
-| Secret name | Required | Value |
-|-------------|----------|--------|
-| `FTP_HOST` | yes | `184.94.213.150` (or your FTP hostname) |
-| `FTP_USER` | yes | cPanel username, e.g. `goodmshd` |
-| `FTP_PASS` | yes | cPanel/FTP password |
-| `FTP_PORT` | no | `21` (default) |
-| `FTP_SSL` | no | `true` if host requires FTPS (AUTH TLS) |
-| `FTP_CORE_DIR` | no | `TGK-core` (default) |
-| `FTP_PUBLIC_DIR` | no | `TGK-public` (default) |
-| `CORE_PATH_REMOTE` | no | `/home/goodmshd/TGK-core` (absolute path for PHP hook) |
-| `PROD_ENV` | recommended | Full contents of local `.env.production` — uploaded **only if** the server has no `.env` yet |
-
-SSH secrets (`SSH_*`) are **not used** while port 22 stays blocked.
-
-Environments (`production` in Settings) are **optional** and unavailable on
-GitHub Free + private repos — the workflow no longer requires one.
+> These paths are the deploy script's defaults (`$HOME/TGK-core`, `$HOME/TGK-public`).
+> Only set the `DEPLOY_CORE_DIR` / `DEPLOY_PUBLIC_DIR` secrets if you move them.
 
 ---
 
-## Workflow
+## The two workflows
 
-**`.github/workflows/ci.yml`** on every push to `main`:
+### 1. `.github/workflows/ci.yml` — CI (test & autofix)
+Runs on every push/PR to `main`:
+- Composer + npm install
+- **Laravel Pint** autofix, committed back as `style: … [skip ci]` (push events only)
+- `npm run build` and assert `public/build/manifest.json` + SSR bundle
+- `php artisan test` (PHPUnit, sqlite)
 
-1. **test** — Composer + npm, Pint autofix commit, PHPUnit, `npm run build`
-2. **deploy** (`needs: test`)
-   - Build assets
-   - Write `.env.production` from `PROD_ENV`
-   - `package-release.sh` → `dist/stage` (composer `--no-dev`, ship `public/build`)
-   - `prepare-public.sh` → `dist/public-docroot` (custom `index.php` + `.htaccess` + `build/`)
-   - `ftp-deploy.sh` — lftp mirror stage → `TGK-core/`, docroot → `TGK-public/`
-     - **Never overwrites** remote `.env`, logs, sessions, uploads
-     - Uploads staged `.env` only if server `.env` is missing
-   - Upload `deploy-hook-<sha>.php` (random token), `GET` it once → migrate + caches
-   - **Delete** the hook
-   - HTTPS smoke check: `/`, `/sitemap.xml`, `/robots.txt`
+### 2. `.github/workflows/deploy.yml` — Deploy (cPanel SSH)
+Triggered automatically **only when CI succeeds on `main`** (via `workflow_run`),
+or manually from the Actions tab. It:
+1. Checks out latest `main` (includes the Pint autofix commit)
+2. Verifies required deploy secrets are present
+3. `npm ci && npm run build` (fresh production assets)
+4. Writes `.env.production` from the `PROD_ENV` secret (uploaded only if the
+   server has no `.env` yet — a live `.env` is never overwritten)
+5. `package-release.sh` → `dist/release-<sha>.tar.gz` (composer `--no-dev`,
+   built assets, no secrets/keys/tests)
+6. Loads the SSH key, pins the host key
+7. **SCP** the tarball + `server-deploy.sh` to the server, then run the deploy
+   over SSH
+8. HTTPS smoke check of `/`, `/sitemap.xml`, `/robots.txt`
+
+`server-deploy.sh` on the server does the heavy lifting: requirement checks →
+extract → preserve `.env`/uploads → **app key** → dependency fallback →
+permissions → code swap (stale cleanup) → docroot mirror → **storage symlink** →
+smart migrations → cache build → prune old releases → structure verification.
+
+---
+
+## GitHub configuration
+
+**Repo → Settings → Secrets and variables → Actions**
+
+### Secrets (Secrets tab)
+
+| Secret | Required | Value |
+|--------|----------|-------|
+| `SSH_HOST` | **yes** | `107.180.118.78` |
+| `SSH_USER` | **yes** | `a040j9v5l2vz` |
+| `SSH_PRIVATE_KEY` | **yes** | Full contents of `github-actions-TGK` (the private key, including the BEGIN/END lines) |
+| `PROD_ENV` | recommended | Full contents of your production `.env` (see below). Uploaded only when the server has no `.env`. |
+| `SSH_PORT` | no | `22` (default) |
+| `DEPLOY_CORE_DIR` | no | Override backend path (default `~/TGK-core`) |
+| `DEPLOY_PUBLIC_DIR` | no | Override docroot path (default `~/TGK-public`) |
+| `DEPLOY_PHP_BIN` | no | PHP CLI on the server if `php` isn't 8.2+ (e.g. `ea-php83`) |
+
+### Variables (Variables tab)
+
+| Variable | Required | Value |
+|----------|----------|-------|
+| `DEPLOY_URL` | no | `https://goodkenyan.org` (default used if unset) |
+| `KEEP_RELEASES` | no | Rollback tarballs to keep (default `3`) |
+
+> The old FTP secrets (`FTP_*`, `CORE_PATH_REMOTE`) are no longer used and can be deleted.
+
+---
+
+## SSH key
+
+Generated at the repo root (both files are **gitignored**):
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-TGK" -f github-actions-TGK -N ""
+#  github-actions-TGK      → private key → paste into the SSH_PRIVATE_KEY secret
+#  github-actions-TGK.pub  → public key  → add to the server (below)
+```
+
+Add the **public** key to the server (you said you've already reused it — this is
+the reference):
+
+```bash
+# In cPanel → Terminal (or SSH in with the cPanel password once):
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+echo "ssh-ed25519 AAAA...github-actions-TGK" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
 
 ---
 
 ## First-time server bootstrap (once)
 
-In **cPanel → Terminal** (or File Manager):
+In **cPanel → Terminal**:
 
 ```bash
+# 1. Directory skeleton (server-deploy.sh also creates these, but pre-creating is safe)
 mkdir -p ~/TGK-core/storage/app/public ~/TGK-core/storage/app/private \
          ~/TGK-core/storage/framework/{cache/data,sessions,views} \
-         ~/TGK-core/storage/logs ~/TGK-core/bootstrap/cache \
-         ~/TGK-public
+         ~/TGK-core/storage/logs ~/TGK-core/bootstrap/cache ~/TGK-public
 
-# Public uploads URL (/storage/…) — FTP cannot create symlinks
+# 2. Public uploads symlink (deploy re-checks/creates this every run too)
 ln -sfn ~/TGK-core/storage/app/public ~/TGK-public/storage
 ```
 
-1. **cPanel → File Manager** → create `TGK-core/.env`  
-   (paste local `.env.production`, or set the `PROD_ENV` secret and let the first deploy upload it)
-2. Document root for **goodkenyan.org** → `/home/goodmshd/TGK-public`
-3. PHP **8.2+** (8.3 recommended); extensions: `pdo_mysql`, `mbstring`, `openssl`, `ctype`, `json`, `curl`, `fileinfo`, `tokenizer`, `xml`
-4. MySQL (cPanel) — already in `.env.production`:  
-   DB `goodmshd_TGK-site`, user `goodmshd_TGKADM`
-
-After the first successful deploy:
-
-```bash
-# Optional admin user
-cd ~/TGK-core && php artisan db:seed --class=AdminUserSeeder --force
-```
-
----
-
-## Local secrets hygiene
-
-Gitignored (verified):
-- `.env`, `.env.production`, `.env.*.local`
-- `github-actions-*`, `*.pem`, `id_rsa`, `id_ed25519`
-- `/vendor`, `/public/build`, `/bootstrap/ssr`
-
-Production credentials live only in:
-1. Local gitignored `.env.production`
-2. Server `TGK-core/.env` (never overwritten by FTP)
-3. GitHub secrets (`FTP_*`, `PROD_ENV`)
+Then in cPanel:
+1. **Domains** → point **both** `goodkenyan.org` and `goodkenyan.com` document
+   roots to `/home/a040j9v5l2vz/TGK-public`. (The `.com → .org` redirect is
+   handled in `.htaccess`.)
+2. **MultiPHP Manager / Select PHP Version** → PHP **8.2+** (8.3 recommended)
+   with extensions: `pdo_mysql`, `mbstring`, `openssl`, `ctype`, `json`, `curl`,
+   `fileinfo`, `tokenizer`, `xml`, `dom`.
+3. **MySQL Databases** → create the DB + user, note the account-prefixed full
+   names (e.g. `a040j9v5l2vz_TGK-site`, `a040j9v5l2vz_TGKADM`), grant ALL.
+4. **Create `~/TGK-core/.env`** (see below) — or set the `PROD_ENV` secret and let
+   the first deploy upload it.
+5. **SSL** — issue/enable AutoSSL for both domains so HTTPS works before the first
+   smoke check.
 
 ---
 
-## Enabling SSR later (VPS only)
+## Production `.env`
 
-```bash
-npm run build
-INERTIA_SSR_ENABLED=true php artisan inertia:start-ssr
+Base it on `.env.production.example`. Set a real `APP_KEY` (the deploy generates
+one automatically if it's blank), fill DB + mail secrets, then either paste it
+into `~/TGK-core/.env` on the server **or** store it as the `PROD_ENV` secret.
+
+Key values for this server:
+
+```env
+APP_URL=https://goodkenyan.org
+DB_DATABASE=a040j9v5l2vz_TGK-site      # confirm exact prefixed name in cPanel
+DB_USERNAME=a040j9v5l2vz_TGKADM
+DB_PASSWORD=********
+MAIL_HOST=mail.goodkenyan.com
+MAIL_PORT=465
+MAIL_SCHEME=smtps
+MAIL_USERNAME=system@goodkenyan.com
+MAIL_PASSWORD=********
+MAIL_FROM_ADDRESS="system@goodkenyan.com"
+SESSION_SECURE_COOKIE=true
 ```
 
-Not for this cPanel box.
+> The live `~/TGK-core/.env` is **never** overwritten by a deploy. To change
+> production config, edit it on the server (or update `PROD_ENV` and remove the
+> server `.env` if you want the secret re-seeded).
+
+---
+
+## Secrets hygiene
+
+Gitignored (verified — nothing sensitive has ever been committed):
+`.env`, `.env.production`, `.env.*.local`, `github-actions-*`, `*.pem`,
+`id_rsa*`, `id_ed25519*`, `known_hosts`, `dist/`, `/vendor`, `/public/build`.
+
+Production credentials live only in: the server `~/TGK-core/.env`, your local
+gitignored `.env.production`, and the GitHub `SSH_PRIVATE_KEY` / `PROD_ENV` secrets.
+
+---
+
+## Manual / emergency deploy (from your machine)
+
+```bash
+cd app
+export SSH_HOST=107.180.118.78 SSH_USER=a040j9v5l2vz SSH_PORT=22
+KEY=../github-actions-TGK
+SHA=$(git rev-parse --short HEAD)
+
+npm ci && npm run build
+./scripts/deploy/package-release.sh dist "$SHA"
+
+scp -i "$KEY" -P "$SSH_PORT" dist/release-$SHA.tar.gz "$SSH_USER@$SSH_HOST:release.tar.gz"
+scp -i "$KEY" -P "$SSH_PORT" scripts/deploy/server-deploy.sh "$SSH_USER@$SSH_HOST:deploy.sh"
+ssh -i "$KEY" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+  'RELEASE_ARCHIVE=$HOME/release.tar.gz RELEASE_ID='"$SHA"' bash $HOME/deploy.sh; rm -f $HOME/deploy.sh'
+```
 
 ---
 
@@ -143,31 +204,13 @@ Not for this cPanel box.
 
 | Symptom | Fix |
 |---------|-----|
-| FTP auth fail | Check `FTP_HOST`/`FTP_USER`/`FTP_PASS`; try `FTP_SSL=true`; confirm port 21 in cPanel → FTP Accounts |
-| FTP path not found | Paths are relative to FTP home — keep `TGK-core` / `TGK-public` (no `/home/…` prefix) |
-| 500 on site | cPanel Terminal: `tail ~/TGK-core/storage/logs/laravel.log` |
-| Assets 404 | Confirm `TGK-public/build/manifest.json` exists; re-run deploy |
-| `/storage` 404 | `ls -la ~/TGK-public/storage` → must be a symlink to `~/TGK-core/storage/app/public` |
-| Hook HTTP 403/404 | File not uploaded or token mismatch — check deploy job log; re-run workflow |
-| Hook left on server | Should auto-delete; remove `TGK-public/deploy-hook-*.php` via File Manager if needed |
-| Migrate failed | cPanel Terminal: `cd ~/TGK-core && php artisan migrate --force` |
-| Pint commit loop | Autofix commits use `[skip ci]` |
-| SSH still blocked | Expected — host firewall; ask host to open 22 if you want SSH deploys later |
-
----
-
-## Manual emergency deploy (FTP from your machine)
-
-```bash
-./scripts/deploy/package-release.sh dist manual
-./scripts/deploy/prepare-public.sh dist/stage dist/public-docroot
-
-export FTP_HOST=184.94.213.150 FTP_USER=goodmshd FTP_PASS='…' FTP_PORT=21
-./scripts/deploy/ftp-deploy.sh
-```
-
-Then in cPanel Terminal:
-
-```bash
-cd ~/TGK-core && php artisan migrate --force && php artisan optimize
-```
+| Deploy: `Permission denied (publickey)` | Public key not in `~/.ssh/authorized_keys`, or wrong `SSH_PRIVATE_KEY`/`SSH_USER`. `chmod 700 ~/.ssh; chmod 600 ~/.ssh/authorized_keys`. |
+| Deploy: `Host key verification failed` | Rare; the workflow uses `accept-new`. Re-run the job. |
+| `missing PHP extension` | Enable it in cPanel → Select PHP Version, then re-run. |
+| 500 on the site | `tail ~/TGK-core/storage/logs/laravel.log`; check `~/TGK-core/.env` DB creds. |
+| Assets 404 | Confirm `~/TGK-public/build/manifest.json` exists; re-run deploy. |
+| `/storage` 404 | `ls -la ~/TGK-public/storage` must be a symlink to `~/TGK-core/storage/app/public`. |
+| `.com` not redirecting | Confirm its docroot is `~/TGK-public` and mod_rewrite is on. |
+| Migrations skipped | DB unreachable — verify DB name/user/password (account prefix!) in `.env`. |
+| Deploy didn't trigger | It only runs after **CI succeeds on `main`**. Check the CI run, or use "Run workflow" on Deploy. |
+| Wrong PHP version used | Set the `DEPLOY_PHP_BIN` secret (e.g. `ea-php83`). |
