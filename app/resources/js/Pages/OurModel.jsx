@@ -60,7 +60,7 @@ export default function OurModel() {
                 <Container>
                     <div className="grid gap-12 lg:grid-cols-12 items-center">
                         <div className="lg:col-span-6">
-                            <img src={darajaImage} alt="Daraja programme at Regina Yego Girls Center" loading="lazy" className="rounded-3xl w-full aspect-[4/3] object-cover shadow-card" />
+                            <img src={darajaImage} alt="Daraja mentorship inside a partner high school" loading="lazy" className="rounded-3xl w-full aspect-[4/3] object-cover shadow-card" />
                         </div>
                         <div className="lg:col-span-6">
                             <SectionHeader
@@ -69,10 +69,10 @@ export default function OurModel() {
                             />
                             <Reveal delay={0.1}>
                                 <RichText
-                                    html={cms.html('daraja.body', '<p>Daraja works with girls aged 14 to 17 at risk of dropping out. Through structured mentorship and life skills at Regina Yego Girls Center, they complete high school and leave with a plan for what comes next.</p>')}
+                                    html={cms.html('daraja.body', '<p>Daraja works upstream with teens aged 14 to 17 at risk of dropping out. Off campus and inside high schools, structured mentorship and life skills help them stay enrolled and reach 18 with their options open, ready for Discover.</p>')}
                                     className="mt-4 text-lg leading-relaxed text-brand-charcoal"
                                 />
-                                <Link href={cms.text('cta.daraja_route', '/regina-yego')} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-brand-red">{cms.text('cta.daraja_label', 'Visit Regina Yego Girls Center')} →</Link>
+                                <Link href={cms.text('cta.daraja_route', '/get-involved#register')} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-brand-red">{cms.text('cta.daraja_label', 'Apply to Daraja')} →</Link>
                             </Reveal>
                         </div>
                     </div>

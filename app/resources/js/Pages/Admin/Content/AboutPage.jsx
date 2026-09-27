@@ -30,15 +30,6 @@ export default function AboutPage({ page, pageSlug, blocks = {} }) {
             ],
         },
         {
-            key: 'values',
-            label: 'Values & Voice',
-            fields: [
-                { key: 'values.title', label: 'Title' },
-                { key: 'values.body', label: 'Body', type: 'textarea', richText: true },
-                { key: 'values.image', label: 'Supporting image', type: 'image', folder: 'about' },
-            ],
-        },
-        {
             key: 'cta',
             label: 'CTA Buttons',
             fields: [
@@ -54,7 +45,7 @@ export default function AboutPage({ page, pageSlug, blocks = {} }) {
         <ContentEditor
             pageSlug={pageSlug}
             pageTitle={page.label}
-            pageDescription="Manage the content for the About page, including your story, mission, vision, and values."
+            pageDescription="Manage the content for the About page, including your story, mission, and vision."
             blocks={blocks}
             tabs={tabs}
             route={route('admin.content.update', pageSlug)}

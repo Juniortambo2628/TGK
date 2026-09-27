@@ -11,7 +11,7 @@ class ContentController extends Controller
 {
     protected array $pages = [
         'home' => ['label' => 'Home Page', 'tabs' => ['Hero', 'Who We Are', 'Impact Numbers', 'The Problem', 'We Believe', 'Our Model', 'Stawi', 'Bottom CTA']],
-        'about' => ['label' => 'About Page', 'tabs' => ['Hero', 'Our Story', 'Mission & Vision', 'Values & Voice']],
+        'about' => ['label' => 'About Page', 'tabs' => ['Hero', 'Our Story', 'Mission & Vision']],
         'our-model' => ['label' => 'Our Model Page', 'tabs' => ['Hero', 'Three Stages', 'Daraja Upstream']],
         'regina-yego' => ['label' => 'Regina Yego Page', 'tabs' => ['Hero', 'Who We Serve', 'Stats', 'Growing the Family']],
         'stawi' => ['label' => 'Stawi Enterprises Page', 'tabs' => ['Hero', 'Good Studio', 'Good Connect', 'Selected Work']],

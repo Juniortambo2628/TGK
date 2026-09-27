@@ -125,7 +125,7 @@ function RegistrationForm({ title, intro }) {
                     <option value="msingi" className="text-brand-charcoal">Msingi (Discover, 6 weeks)</option>
                     <option value="imarisha" className="text-brand-charcoal">Imarisha (Develop, 6 months)</option>
                     <option value="stawi" className="text-brand-charcoal">Stawi (Launch, 1 year)</option>
-                    <option value="daraja" className="text-brand-charcoal">Daraja (girls 14–17)</option>
+                    <option value="daraja" className="text-brand-charcoal">Daraja (teens 14–17)</option>
                 </select>
                 <textarea placeholder="Tell us a little about yourself" rows={3} value={data.message} onChange={(e) => setData('message', e.target.value)} className={mutedInputCls} />
                 <button type="submit" disabled={processing} className="btn bg-brand-off text-brand-charcoal hover:bg-white self-start mt-2">

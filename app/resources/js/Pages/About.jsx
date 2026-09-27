@@ -2,7 +2,6 @@ import { Link } from '@inertiajs/react';
 import Hero from '../Components/Hero';
 import Container from '../Components/Container';
 import SectionHeader from '../Components/SectionHeader';
-import TwoColumnFeature from '../Components/TwoColumnFeature';
 import CTABlock from '../Components/CTABlock';
 import RichText from '../Components/RichText';
 import { Reveal } from '../Components/Motion';
@@ -14,10 +13,6 @@ export default function About() {
     const heroImage = cms.hasImages('hero.images')
         ? imageUrl(cms.array('hero.images')[0])
         : '/images/landing/about-hero.jpg';
-
-    const valuesImage = cms.hasImages('values.image')
-        ? imageUrl(cms.array('values.image')[0])
-        : '/images/landing/values.jpg';
 
     return (
         <>
@@ -41,7 +36,7 @@ export default function About() {
                         <div className="lg:col-span-7 lg:pt-12">
                             <Reveal>
                                 <RichText
-                                    html={cms.html('story.body', "<p>We work with youth aged 18 to 24 from low income rural communities and Nairobi's informal settlements, particularly vulnerable young women, guiding them from uncertainty after high school into clear, practical pathways toward work, business or further education.</p><p>Alongside this, our Daraja programme works upstream with girls aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills so they complete their education and leave with a plan.</p>")}
+                                    html={cms.html('story.body', "<p>Good Kenyan Foundation is a Kenyan-led organisation with a proven record since 2017 of moving young people from school into income. Our main programme takes young people aged 18 to 24 from low income rural communities and Nairobi's informal settlements, particularly young women, and guides them through Msingi, Imarisha and Stawi into employment, enterprise or further study, with a strong focus on Kenya's creative and service economy.</p><p>Alongside this, Daraja works upstream with teens aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills, so they reach 18 with their options open.</p>")}
                                     className="text-lg leading-relaxed text-brand-charcoal space-y-4"
                                 />
                             </Reveal>
@@ -57,7 +52,7 @@ export default function About() {
                             <article className="rounded-3xl bg-white p-10 shadow-card">
                                 <p className="eyebrow mb-4">Our Mission</p>
                                 <RichText
-                                    html={cms.html('mission', "<p>To grow the potential of Kenya's youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods.</p>")}
+                                    html={cms.html('mission', "<p>To grow the potential of Kenya's youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods in the creative and service economy.</p>")}
                                     className="text-2xl font-black leading-snug"
                                 />
                             </article>
@@ -74,18 +69,6 @@ export default function About() {
                     </div>
                 </Container>
             </section>
-
-            <TwoColumnFeature
-                eyebrow="How we sound"
-                title={cms.text('values.title', 'Warm, vibrant, clean, modern.')}
-                image={valuesImage}
-                imageAlt="Programme participants working together"
-            >
-                <RichText
-                    html={cms.html('values.body', '<p>We think like a person, not a company. When we talk about young people and their transition into work, we are experts, and we sound like it: knowledgeable and friendly. Never institutional, never pitying, never shouty.</p><p>Everything we publish should sound like a person wrote it for a person, and every interaction should feel full of possibility.</p>')}
-                    className="space-y-4"
-                />
-            </TwoColumnFeature>
 
             <CTABlock eyebrow="Come along" title="Two ways to get involved right now." tone="red">
                 <Link href={cms.text('cta.primary_route', '/get-involved')} className="btn bg-brand-off text-brand-charcoal hover:bg-white">{cms.text('cta.primary_label', 'Get involved')}</Link>
