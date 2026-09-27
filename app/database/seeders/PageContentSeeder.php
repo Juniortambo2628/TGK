@@ -82,18 +82,17 @@ class PageContentSeeder extends Seeder
 
             'who.eyebrow' => 'Who we are',
             'who.title' => 'A Kenyan led organisation serving youth.',
-            'who.body' => '<p>Good Kenyan Foundation has a proven record of helping young people bridge the gap between school and opportunity. We work with youth aged 18 to 24 from low income rural communities and Nairobi\'s informal settlements, particularly vulnerable young women, guiding them from uncertainty after high school into clear, practical pathways toward work, business or further education, with a strong focus on the creative economy.</p><p>Alongside this, our Daraja programme works upstream with girls aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills so they complete their education and leave with a plan.</p>',
-            'who.mission' => '<p>To grow the potential of Kenya\'s youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods.</p>',
+            'who.body' => '<p>Good Kenyan Foundation is a Kenyan-led organisation with a proven record since 2017 of moving young people from school into income. Our main programme takes young people aged 18 to 24 from low income rural communities and Nairobi\'s informal settlements, particularly young women, and guides them through Msingi, Imarisha and Stawi into employment, enterprise or further study, with a strong focus on Kenya\'s creative and service economy.</p><p>Alongside this, Daraja works upstream with teens aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills, so they reach 18 with their options open.</p>',
+            'who.mission' => '<p>To grow the potential of Kenya\'s youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods in the creative and service economy.</p>',
             'who.vision' => '<p>A Kenya where youth creativity drives meaningful work and sustainable livelihoods.</p>',
 
             'impact.eyebrow' => 'Impact by the numbers',
             'impact.title' => 'A track record we count and can point to.',
             'impact.body' => 'Since 2017, we have built a structured gateway from school-leaving into economic independence. Our alumni are running micro-enterprises, working in the creative and service sectors, and moving through targeted scholarship pipelines.',
             'impact.stats' => [
-                ['value' => '600',    'label' => 'Youth skilled and mentored', 'description' => 'Direct graduates of Msingi, Imarisha and Stawi.'],
-                ['value' => '75%',    'label' => 'Transition rate',            'description' => 'Move into work, business or further study after the programme.'],
-                ['value' => '400',    'label' => 'Mentors equipped',           'description' => 'Trained to hold a mentee relationship end to end.'],
-                ['value' => '2,000',  'label' => 'Youth indirectly supported', 'description' => 'Family, cohort peers and community touched by the work.'],
+                ['value' => '655',  'label' => 'People reached since 2017',      'description' => 'Including 571 young people.'],
+                ['value' => '70%',  'label' => 'Transition rate',               'description' => 'Graduates who move into work, business or further study.'],
+                ['value' => '186',  'label' => 'Teens supported through Daraja', 'description' => 'With 50 already through high school.'],
             ],
             'impact.centers_text' => '2 Centers in Nairobi and Eldoret.',
 
@@ -101,7 +100,7 @@ class PageContentSeeder extends Seeder
             'problem.title' => 'The transition trap.',
             'problem.description' => 'What happens between finishing school and finding a livelihood decides most of what comes next. For a majority of Kenyan youth, that space is empty.',
 
-            'believe.body' => '<p><strong>IF</strong> vulnerable youth engage in a holistic, gender responsive programme that builds individualised career plans, digital skills, life skills and self awareness, <strong>AND IF</strong> they receive 6 to 18 months of sustained, staged support, <strong>THEN</strong> they build the confidence, skills and networks to transition into their chosen pathway and begin earning, <strong>SO THAT</strong> over time they lead sustainable, dignified livelihoods with greater control over their economic, health and life decisions.</p>',
+            'believe.body' => '<p><strong>IF</strong> young people build individualised career plans, digital skills, life skills and self awareness, <strong>AND IF</strong> they receive 6 to 18 months of staged support through mentorship, career exposure and employer connections, with families and communities behind them, <strong>THEN</strong> they transition into their chosen pathway and begin earning, <strong>SO THAT</strong> over time they lead sustainable, dignified livelihoods with greater control over their economic, health and life decisions.</p>',
 
             'model.eyebrow' => 'From uncertainty to income',
             'model.title' => 'The Discover, Develop, Launch model.',
@@ -128,12 +127,9 @@ class PageContentSeeder extends Seeder
             'hero.images' => ['images/landing/about-hero.jpg'],
             'story.eyebrow' => 'Our story',
             'story.title' => 'Founded in 2017. Based in Eldoret and Nairobi.',
-            'story.body' => '<p>We work with youth aged 18 to 24 from low income rural communities and Nairobi\'s informal settlements, particularly vulnerable young women, guiding them from uncertainty after high school into clear, practical pathways toward work, business or further education.</p><p>Alongside this, our Daraja programme works upstream with girls aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills so they complete their education and leave with a plan.</p>',
-            'mission' => '<p>To grow the potential of Kenya\'s youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods.</p>',
+            'story.body' => '<p>Good Kenyan Foundation is a Kenyan-led organisation with a proven record since 2017 of moving young people from school into income. Our main programme takes young people aged 18 to 24 from low income rural communities and Nairobi\'s informal settlements, particularly young women, and guides them through Msingi, Imarisha and Stawi into employment, enterprise or further study, with a strong focus on Kenya\'s creative and service economy.</p><p>Alongside this, Daraja works upstream with teens aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills, so they reach 18 with their options open.</p>',
+            'mission' => '<p>To grow the potential of Kenya\'s youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods in the creative and service economy.</p>',
             'vision' => '<p>A Kenya where youth creativity drives meaningful work and sustainable livelihoods.</p>',
-            'values.title' => 'Warm, vibrant, clean, modern.',
-            'values.body' => '<p>We think like a person, not a company. When we talk about young people and their transition into work, we are experts, and we sound like it: knowledgeable and friendly. Never institutional, never pitying, never shouty.</p><p>Everything we publish should sound like a person wrote it for a person, and every interaction should feel full of possibility.</p>',
-            'values.image' => ['images/landing/values.jpg'],
         ]);
     }
 
@@ -153,8 +149,10 @@ class PageContentSeeder extends Seeder
             ],
             'daraja.eyebrow' => 'Upstream',
             'daraja.title' => 'Daraja: staying in school.',
-            'daraja.body' => '<p>Daraja works with girls aged 14 to 17 at risk of dropping out. Through structured mentorship and life skills at Regina Yego Girls Center, they complete high school and leave with a plan for what comes next.</p>',
+            'daraja.body' => '<p>Daraja works upstream with teens aged 14 to 17 at risk of dropping out. Off campus and inside high schools, structured mentorship and life skills help them stay enrolled and reach 18 with their options open, ready for Discover.</p>',
             'daraja.image' => ['images/landing/daraja.jpg'],
+            'cta.daraja_label' => 'Apply to Daraja',
+            'cta.daraja_route' => '/get-involved#register',
         ]);
     }
 
@@ -164,19 +162,19 @@ class PageContentSeeder extends Seeder
     {
         $this->write('regina-yego', [
             'hero.eyebrow' => 'Regina Yego Girls Center',
-            'hero.title' => 'A home for the Daraja programme.',
-            'hero.subtitle' => 'Our first center, in Mile 13 Juakali, Eldoret. Green belongs to Regina Yego, and to Regina Yego alone.',
+            'hero.title' => 'Our flagship home for young women.',
+            'hero.subtitle' => 'In Mile 13 Juakali, Eldoret, rural young women aged 18 to 24 move through the full Discover, Develop, Launch journey in a safe space built for women.',
             'hero.images' => ['images/landing/regina-yego.jpg'],
             'who.eyebrow' => 'Who we serve',
-            'who.title' => 'Girls aged 14 to 17, at risk of dropping out.',
-            'who.body' => '<p>The Daraja programme walks with girls through the years when a small setback becomes a permanent one. Mentorship, life skills and a safe study environment help them finish high school and leave with a clear plan.</p><p>Many alumni go on to join the Discover programme at 18, continuing the journey from school to opportunity without a gap in between.</p>',
+            'who.title' => 'Young women aged 18 to 24.',
+            'who.body' => '<p>Young women face the sharpest edge of the transition trap. At Regina Yego, our flagship programme site, we deliver the full Discover, Develop, Launch journey to rural young women aged 18 to 24, including single mothers and those from vulnerable households, in a safe space built for women.</p><p>Daraja is different. Our upstream programme runs off campus, inside high schools, walking with teens aged 14 to 17 at risk of dropping out so they reach 18 with their options open.</p>',
             'stats' => [
-                ['value' => '14–17', 'label' => 'Ages served',     'description' => 'Girls in the Daraja programme at the center.'],
-                ['value' => '100%',  'label' => 'Guardian consent', 'description' => 'Every photograph, every enrolment, every share.'],
-                ['value' => '1',     'label' => 'First center',    'description' => 'The template every future center will follow.'],
+                ['value' => '18–24', 'label' => 'Ages served',      'description' => 'Rural young women, including single mothers and vulnerable households.'],
+                ['value' => '3',     'label' => 'Stages on site',   'description' => 'Discover, Develop and Launch, all under one roof.'],
+                ['value' => '1',     'label' => 'Flagship center',  'description' => 'Our first and primary programme site, in Eldoret.'],
             ],
-            'growing.title' => 'One system. Many centers.',
-            'growing.body' => '<p>Every future center inherits three fixed things from this one: the bracket mark, the Lato wordmark, and the parent line "Good Kenyan Foundation". One thing is chosen per center: a single colour, assigned once, used the way green is used here.</p>',
+            'growing.title' => 'One model. More young women reached.',
+            'growing.body' => '<p>Regina Yego is the template for how we reach young women at scale. Each new centre carries the same full journey, the same safe space and the same standard of care, so more rural young women can move from school to opportunity close to home.</p>',
         ]);
     }
 

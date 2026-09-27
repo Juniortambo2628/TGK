@@ -3,10 +3,9 @@ import { Stat } from './StatCounter';
 import { Reveal } from './Motion';
 
 const DEFAULT_STATS = [
-    { value: '600',    label: 'Youth skilled and mentored', description: 'Direct graduates of Msingi, Imarisha and Stawi.' },
-    { value: '75%',    label: 'Transition rate',            description: 'Move into work, business or further study after the programme.' },
-    { value: '400',    label: 'Mentors equipped',           description: 'Trained to hold a mentee relationship end to end.' },
-    { value: '2,000',  label: 'Youth indirectly supported', description: 'Family, cohort peers and community touched by the work.' },
+    { value: '655',  label: 'People reached since 2017', description: 'Including 571 young people.' },
+    { value: '70%',  label: 'Transition rate',          description: 'Graduates who move into work, business or further study.' },
+    { value: '186',  label: 'Teens supported through Daraja', description: 'With 50 already through high school.' },
 ];
 
 /**

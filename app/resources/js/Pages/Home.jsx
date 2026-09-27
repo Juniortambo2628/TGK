@@ -23,10 +23,9 @@ const FALLBACK_HERO_IMAGES = [
 ];
 
 const FALLBACK_STATS = [
-    { value: '600',    label: 'Youth skilled and mentored', description: 'Direct graduates of Msingi, Imarisha and Stawi.' },
-    { value: '75%',    label: 'Transition rate',            description: 'Move into work, business or further study after the programme.' },
-    { value: '400',    label: 'Mentors equipped',           description: 'Trained to hold a mentee relationship end to end.' },
-    { value: '2,000',  label: 'Youth indirectly supported', description: 'Family, cohort peers and community touched by the work.' },
+    { value: '655',  label: 'People reached since 2017', description: 'Including 571 young people.' },
+    { value: '70%',  label: 'Transition rate',          description: 'Graduates who move into work, business or further study.' },
+    { value: '186',  label: 'Teens supported through Daraja', description: 'With 50 already through high school.' },
 ];
 
 function formatBelieveStatement(html) {
@@ -103,10 +102,10 @@ export default function Home({ stories = [], partners = [] }) {
                                 ) : (
                                     <>
                                         <p className="text-lg lg:text-xl leading-relaxed text-brand-charcoal">
-                                            Good Kenyan Foundation has a proven record of helping young people bridge the gap between school and opportunity. We work with youth aged 18 to 24 from low income rural communities and Nairobi's informal settlements, particularly vulnerable young women, guiding them from uncertainty after high school into clear, practical pathways toward work, business or further education, with a strong focus on the creative economy.
+                                            Good Kenyan Foundation is a Kenyan-led organisation with a proven record since 2017 of moving young people from school into income. Our main programme takes young people aged 18 to 24 from low income rural communities and Nairobi's informal settlements, particularly young women, and guides them through Msingi, Imarisha and Stawi into employment, enterprise or further study, with a strong focus on Kenya's creative and service economy.
                                         </p>
                                         <p className="mt-6 text-lg leading-relaxed text-brand-grey">
-                                            Alongside this, our Daraja programme works upstream with girls aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills so they complete their education and leave with a plan.
+                                            Alongside this, Daraja works upstream with teens aged 14 to 17 at risk of dropping out, supporting them through high school with mentorship and life skills, so they reach 18 with their options open.
                                         </p>
                                     </>
                                 )}
@@ -122,7 +121,7 @@ export default function Home({ stories = [], partners = [] }) {
                                     <RichText html={cms.html('who.mission')} className="[&_p]:text-xl [&_p]:lg:text-2xl [&_p]:font-bold [&_p]:leading-snug [&_p]:text-brand-charcoal" />
                                 ) : (
                                     <p className="text-xl lg:text-2xl font-bold text-brand-charcoal leading-snug">
-                                        To grow the potential of Kenya's youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods.
+                                        To grow the potential of Kenya's youth by providing skills, mentorship and tools that enable them to build sustainable livelihoods in the creative and service economy.
                                     </p>
                                 )}
                             </article>
@@ -205,9 +204,9 @@ export default function Home({ stories = [], partners = [] }) {
                                 />
                             ) : (
                                 <p className="text-2xl md:text-3xl lg:text-4xl font-black leading-tight text-brand-charcoal text-balance">
-                                    <span className="text-brand-red">IF</span> vulnerable youth engage in a holistic, gender responsive programme that builds individualised career plans, digital skills, life skills and self awareness,{' '}
-                                    <span className="text-brand-red">AND IF</span> they receive 6 to 18 months of sustained, staged support,{' '}
-                                    <span className="text-brand-red">THEN</span> they build the confidence, skills and networks to transition into their chosen pathway and begin earning,{' '}
+                                    <span className="text-brand-red">IF</span> young people build individualised career plans, digital skills, life skills and self awareness,{' '}
+                                    <span className="text-brand-red">AND IF</span> they receive 6 to 18 months of staged support through mentorship, career exposure and employer connections, with families and communities behind them,{' '}
+                                    <span className="text-brand-red">THEN</span> they transition into their chosen pathway and begin earning,{' '}
                                     <span className="text-brand-red">SO THAT</span> over time they lead sustainable, dignified livelihoods with greater control over their economic, health and life decisions.
                                 </p>
                             )}

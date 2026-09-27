@@ -12,7 +12,6 @@ class PartnerSeeder extends Seeder
         $partners = [
             ['name' => 'Segal Family Foundation', 'logo' => 'Segal-Family-Foundation.png'],
             ['name' => 'Microsoft Give',          'logo' => 'Microsoft-Give-Logo.png'],
-            ['name' => 'Galana Energies',         'logo' => 'Galana-Energies_logo.png'],
             ['name' => 'ABSF',                    'logo' => 'ABSF.png'],
             ['name' => 'IFF',                     'logo' => 'IFF-logo-resized.png'],
             ['name' => 'Global Giving',           'logo' => 'GW-logo.jpg'],
@@ -27,5 +26,9 @@ class PartnerSeeder extends Seeder
                 ['logo' => $p['logo'], 'sort_order' => $i, 'is_active' => true]
             );
         }
+
+        // Galana Energies is no longer a partner; prune any existing row so the
+        // seeded DB matches the list above on both fresh and incremental seeds.
+        Partner::where('name', 'Galana Energies')->delete();
     }
 }
