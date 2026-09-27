@@ -1,13 +1,25 @@
 #!/usr/bin/env bash
-# Server-side deploy for cPanel shared hosting (no rsync).
-# Invoked over SSH after the CI artifact has been SCP'd to $UPLOAD_PATH.
+# =============================================================================
+# Server-side deploy for cPanel shared hosting over SSH (no rsync available).
 #
-# Environment (passed by GitHub Actions):
-#   RELEASE_ARCHIVE  absolute path to uploaded .tar.gz
-#   CORE_DIR         /home/goodmshd/TGK-core
-#   PUBLIC_DIR       /home/goodmshd/TGK-public
-#   RELEASE_ID       short git sha
-#   KEEP_RELEASES    how many old releases to retain (default 3)
+# GitHub Actions SCPs a release tarball to the server, then runs this script
+# over SSH. It performs a full, idempotent deploy:
+#   requirement checks -> extract -> preserve secrets/uploads -> app key ->
+#   dependencies -> permissions -> code swap (stale-file cleanup) ->
+#   docroot mirror -> storage symlink -> migrations -> optimize caches ->
+#   prune old releases -> structure verification.
+#
+# Because rsync is not installed on this host, "delete stale files" is achieved
+# by fully replacing code directories and mirroring the document root each run.
+#
+# Environment (exported by the deploy workflow before invoking):
+#   RELEASE_ARCHIVE  absolute path to the uploaded .tar.gz            (required)
+#   CORE_DIR         backend dir      (default: $HOME/TGK-core)
+#   PUBLIC_DIR       document root    (default: $HOME/TGK-public)
+#   RELEASE_ID       short git sha / timestamp
+#   KEEP_RELEASES    number of release tarballs to retain (default: 3)
+#   PHP_BIN          php binary to use (default: php; cPanel: ea-php83 etc.)
+# =============================================================================
 
 set -euo pipefail
 
@@ -16,274 +28,260 @@ CORE_DIR="${CORE_DIR:-$HOME/TGK-core}"
 PUBLIC_DIR="${PUBLIC_DIR:-$HOME/TGK-public}"
 RELEASE_ID="${RELEASE_ID:-$(date +%Y%m%d%H%M%S)}"
 KEEP_RELEASES="${KEEP_RELEASES:-3}"
-RELEASES_DIR="$CORE_DIR/releases"
-NEW_RELEASE="$RELEASES_DIR/$RELEASE_ID"
 PHP_BIN="${PHP_BIN:-php}"
 
-log() { printf '[deploy] %s\n' "$*"; }
+RELEASES_DIR="$CORE_DIR/releases"          # retained tarballs (rollback)
+STAGING_DIR="$CORE_DIR/.deploy-$RELEASE_ID" # transient extract dir (same FS -> fast mv)
 
-log "Starting release $RELEASE_ID"
-log "Core:   $CORE_DIR"
-log "Public: $PUBLIC_DIR"
-log "PHP:    $($PHP_BIN -v | head -n1)"
+log()  { printf '[deploy] %s\n' "$*"; }
+warn() { printf '[deploy][WARN] %s\n' "$*" >&2; }
+die()  { printf '[deploy][ERROR] %s\n' "$*" >&2; exit 1; }
+
+cleanup_staging() { rm -rf "$STAGING_DIR" 2>/dev/null || true; }
+trap cleanup_staging EXIT
+
+# Resolve a usable PHP binary (cPanel often ships several).
+if ! command -v "$PHP_BIN" >/dev/null 2>&1; then
+  for cand in ea-php83 ea-php82 /opt/cpanel/ea-php83/root/usr/bin/php \
+              /opt/cpanel/ea-php82/root/usr/bin/php php8.3 php8.2 php; do
+    if command -v "$cand" >/dev/null 2>&1; then PHP_BIN="$cand"; break; fi
+  done
+fi
+command -v "$PHP_BIN" >/dev/null 2>&1 || die "no php CLI found (set PHP_BIN)"
+
+log "Release:  $RELEASE_ID"
+log "Core:     $CORE_DIR"
+log "Public:   $PUBLIC_DIR"
+log "PHP:      $("$PHP_BIN" -v | head -n1)"
 
 # ---------------------------------------------------------------------------
-# 1. Requirements checklist
+# 1. Requirement checks (fail early, with actionable messages)
 # ---------------------------------------------------------------------------
 log "Checking requirements…"
-command -v "$PHP_BIN" >/dev/null 2>&1 || { echo "ERROR: php CLI not found"; exit 1; }
+
+"$PHP_BIN" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' \
+  || die "PHP >= 8.2 required, found $("$PHP_BIN" -r 'echo PHP_VERSION;')"
 
 PHP_MODULES="$("$PHP_BIN" -m)"
-for ext in pdo_mysql mbstring openssl tokenizer xml ctype json curl fileinfo; do
-  if ! grep -qi "^${ext}$" <<< "$PHP_MODULES"; then
-    echo "ERROR: missing PHP extension: $ext"
-    exit 1
-  fi
+MISSING_EXT=()
+for ext in pdo_mysql mbstring openssl tokenizer xml ctype json curl fileinfo dom; do
+  grep -qi "^${ext}$" <<< "$PHP_MODULES" || MISSING_EXT+=("$ext")
 done
-log "PHP extensions OK"
-
-if ! "$PHP_BIN" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);'; then
-  echo "ERROR: PHP >= 8.2 required, found $($PHP_BIN -r 'echo PHP_VERSION;')"
-  exit 1
+if [[ ${#MISSING_EXT[@]} -gt 0 ]]; then
+  die "missing PHP extensions: ${MISSING_EXT[*]} (enable them in cPanel → Select PHP Version)"
 fi
+command -v tar >/dev/null 2>&1 || die "tar not found on server"
+log "PHP $("$PHP_BIN" -r 'echo PHP_VERSION;') + required extensions OK"
 
 # ---------------------------------------------------------------------------
-# 2. Directories
+# 2. Directory skeleton (created if missing)
 # ---------------------------------------------------------------------------
-mkdir -p "$RELEASES_DIR" "$CORE_DIR" "$PUBLIC_DIR"
-mkdir -p "$CORE_DIR/storage/framework/"{cache,sessions,views} \
-         "$CORE_DIR/storage/app/"{public,private} \
-         "$CORE_DIR/bootstrap/cache" \
-         "$PUBLIC_DIR"
+log "Ensuring directory skeleton…"
+mkdir -p "$CORE_DIR" "$PUBLIC_DIR" "$RELEASES_DIR" \
+         "$CORE_DIR/storage/framework/cache/data" \
+         "$CORE_DIR/storage/framework/sessions" \
+         "$CORE_DIR/storage/framework/views" \
+         "$CORE_DIR/storage/app/public" \
+         "$CORE_DIR/storage/app/private" \
+         "$CORE_DIR/storage/logs" \
+         "$CORE_DIR/bootstrap/cache"
 
 # ---------------------------------------------------------------------------
-# 3. Extract release
+# 3. Extract the uploaded release into a transient staging dir
 # ---------------------------------------------------------------------------
-log "Extracting $RELEASE_ARCHIVE → $NEW_RELEASE"
-mkdir -p "$NEW_RELEASE"
-tar -xzf "$RELEASE_ARCHIVE" -C "$NEW_RELEASE"
+log "Extracting release → $STAGING_DIR"
+rm -rf "$STAGING_DIR"
+mkdir -p "$STAGING_DIR"
+tar -xzf "$RELEASE_ARCHIVE" -C "$STAGING_DIR"
 
-if [[ ! -f "$NEW_RELEASE/artisan" ]]; then
-  echo "ERROR: artisan not found in release — bad archive?"
-  ls -la "$NEW_RELEASE" | head
-  exit 1
-fi
+[[ -f "$STAGING_DIR/artisan" ]]                     || die "artisan missing from release archive"
+[[ -f "$STAGING_DIR/vendor/autoload.php" ]]         || die "vendor/autoload.php missing from release archive"
+[[ -f "$STAGING_DIR/public/build/manifest.json" ]]  || die "public/build/manifest.json missing (frontend not built)"
 
 # ---------------------------------------------------------------------------
-# 4. Preserve server-only secrets
+# 4. Preserve server-only .env (never overwrite live credentials)
 # ---------------------------------------------------------------------------
 if [[ -f "$CORE_DIR/.env" ]]; then
-  log "Preserving existing .env"
-  cp -a "$CORE_DIR/.env" "$NEW_RELEASE/.env"
-elif [[ -f "$NEW_RELEASE/.env" ]]; then
-  log "Using .env shipped with release"
+  log "Preserving existing $CORE_DIR/.env"
+  cp -a "$CORE_DIR/.env" "$STAGING_DIR/.env"
+elif [[ -f "$STAGING_DIR/.env" ]]; then
+  log "Bootstrapping .env from the one shipped in the release (PROD_ENV)"
+elif [[ -f "$STAGING_DIR/.env.production.example" ]]; then
+  warn "No .env found — seeding from .env.production.example. FILL IN DB/MAIL secrets!"
+  cp -a "$STAGING_DIR/.env.production.example" "$STAGING_DIR/.env"
 else
-  echo "ERROR: no .env found (core or release). Aborting."
-  exit 1
-fi
-
-# Preserve live storage uploads (media library etc.)
-if [[ -d "$CORE_DIR/storage/app" ]]; then
-  log "Syncing live storage/app into release"
-  mkdir -p "$NEW_RELEASE/storage/app"
-  # Copy existing files without deleting anything new in release
-  cp -a "$CORE_DIR/storage/app/." "$NEW_RELEASE/storage/app/" 2>/dev/null || true
+  die "no .env available (core, release, or example). Create $CORE_DIR/.env first."
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Vendor: prefer release vendor; else composer install
+# 5. Swap code into CORE_DIR (this deletes stale code — rsync --delete stand-in)
+#    Everything in the release replaces CORE_DIR, EXCEPT persistent .env/storage.
 # ---------------------------------------------------------------------------
-if [[ ! -d "$NEW_RELEASE/vendor" ]]; then
-  log "vendor/ missing from release — running composer install"
+log "Swapping application code into $CORE_DIR…"
+shopt -s dotglob nullglob
+for src in "$STAGING_DIR"/*; do
+  name="$(basename "$src")"
+  case "$name" in
+    .env|storage) continue ;;   # persistent — handled separately
+  esac
+  rm -rf "${CORE_DIR:?}/$name"
+  mv "$src" "$CORE_DIR/$name"
+done
+shopt -u dotglob nullglob
+
+# .env into place (staging copy holds preserved/bootstrapped value)
+cp -a "$STAGING_DIR/.env" "$CORE_DIR/.env"
+
+# storage: keep the live dir; only seed from release if it does not exist yet
+if [[ -d "$STAGING_DIR/storage" && ! -d "$CORE_DIR/storage/framework" ]]; then
+  cp -a "$STAGING_DIR/storage/." "$CORE_DIR/storage/"
+fi
+mkdir -p "$CORE_DIR/storage/framework/cache/data" \
+         "$CORE_DIR/storage/framework/sessions" \
+         "$CORE_DIR/storage/framework/views" \
+         "$CORE_DIR/storage/app/public" \
+         "$CORE_DIR/storage/app/private" \
+         "$CORE_DIR/storage/logs" \
+         "$CORE_DIR/bootstrap/cache"
+
+# ---------------------------------------------------------------------------
+# 6. Dependencies fallback (CI ships vendor + build; only act if missing)
+# ---------------------------------------------------------------------------
+if [[ ! -f "$CORE_DIR/vendor/autoload.php" ]]; then
+  warn "vendor/ missing after swap — attempting composer install"
   if command -v composer >/dev/null 2>&1; then
-    (cd "$NEW_RELEASE" && composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist)
-  elif "$PHP_BIN" -r "exit(strpos(file_get_contents('phar://'.getenv('HOME').'/.composer/vendor/bin/composer'),'x')?0:1);" 2>/dev/null; then
-    (cd "$NEW_RELEASE" && "$PHP_BIN" "$HOME/.composer/vendor/bin/composer" install --no-dev --optimize-autoloader --no-interaction)
+    (cd "$CORE_DIR" && composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist)
   else
-    echo "ERROR: vendor/ missing and composer not available on server."
-    exit 1
+    die "vendor/ missing and composer not available on server"
   fi
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Node assets — only if public/build missing (CI usually ships them)
+# 7. Application key (generate only if absent — never rotate a live key)
 # ---------------------------------------------------------------------------
-if [[ ! -d "$NEW_RELEASE/public/build" ]]; then
-  log "public/build missing — attempting npm ci && npm run build"
-  if command -v npm >/dev/null 2>&1; then
-    (cd "$NEW_RELEASE" && npm ci --omit=dev 2>/dev/null || npm install --omit=dev)
-    (cd "$NEW_RELEASE" && npm run build)
-  else
-    echo "ERROR: public/build missing and npm not available. CI must ship assets."
-    exit 1
-  fi
+cd "$CORE_DIR"
+if ! grep -qE '^APP_KEY=base64:.+' .env; then
+  log "APP_KEY missing — generating one"
+  "$PHP_BIN" artisan key:generate --force --no-interaction || warn "key:generate failed"
+else
+  log "APP_KEY present — left unchanged"
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Permissions
+# 8. Permissions
 # ---------------------------------------------------------------------------
 log "Setting permissions…"
-chmod -R u+rwX,g+rX "$NEW_RELEASE" || true
-chmod -R 775 "$NEW_RELEASE/storage" "$NEW_RELEASE/bootstrap/cache" 2>/dev/null || true
-# Document root must be readable by the web user; storage public needs write
-chmod -R 775 "$NEW_RELEASE/storage/app" 2>/dev/null || true
-find "$NEW_RELEASE/storage" -type d -exec chmod 775 {} + 2>/dev/null || true
-find "$NEW_RELEASE/storage" -type f -exec chmod 664 {} + 2>/dev/null || true
+chmod -R u+rwX,go+rX "$CORE_DIR" 2>/dev/null || true
+find "$CORE_DIR/storage" "$CORE_DIR/bootstrap/cache" -type d -exec chmod 775 {} + 2>/dev/null || true
+find "$CORE_DIR/storage" "$CORE_DIR/bootstrap/cache" -type f -exec chmod 664 {} + 2>/dev/null || true
+chmod 600 "$CORE_DIR/.env" 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
-# 8. Switch CORE_DIR → new release (atomic-ish)
+# 9. Document root mirror (TGK-public) — wipe stale assets, keep /storage link
 # ---------------------------------------------------------------------------
-log "Switching $CORE_DIR → release $RELEASE_ID"
-# Keep a .env and storage already merged above; swap code dirs
-for item in app bootstrap config database public resources routes scripts tests \
-            artisan composer.json composer.lock package.json package-lock.json \
-            vite.config.js phpunit.xml .env.example .env.production.example; do
-  if [[ -e "$NEW_RELEASE/$item" ]]; then
-    rm -rf "$CORE_DIR/$item"
-    cp -a "$NEW_RELEASE/$item" "$CORE_DIR/$item"
+log "Mirroring document root $PUBLIC_DIR…"
+# Remove everything in docroot except the storage symlink (stale-asset cleanup)
+find "$PUBLIC_DIR" -mindepth 1 -maxdepth 1 ! -name storage -exec rm -rf {} + 2>/dev/null || true
+# Copy Laravel's public/ into the docroot
+cp -a "$CORE_DIR/public/." "$PUBLIC_DIR/"
+# Replace the entry point with the split-layout index.php pointing at CORE_DIR
+if [[ -f "$CORE_DIR/scripts/deploy/public-index.php" ]]; then
+  sed "s|__CORE_PATH__|${CORE_DIR}|g" \
+      "$CORE_DIR/scripts/deploy/public-index.php" > "$PUBLIC_DIR/index.php"
+else
+  die "scripts/deploy/public-index.php template missing from release"
+fi
+# A local public/storage placeholder must never shadow the real symlink
+rm -rf "$PUBLIC_DIR/hot"
+
+# ---------------------------------------------------------------------------
+# 10. Public storage symlink (/storage → core storage/app/public)
+# ---------------------------------------------------------------------------
+log "Ensuring /storage symlink…"
+if [[ -L "$PUBLIC_DIR/storage" ]]; then
+  current_target="$(readlink -f "$PUBLIC_DIR/storage" 2>/dev/null || true)"
+  want_target="$(readlink -f "$CORE_DIR/storage/app/public" 2>/dev/null || true)"
+  if [[ "$current_target" != "$want_target" ]]; then
+    rm -f "$PUBLIC_DIR/storage"
+    ln -sfn "$CORE_DIR/storage/app/public" "$PUBLIC_DIR/storage"
   fi
-done
-
-# vendor + public/build (large) — replace fully
-rm -rf "$CORE_DIR/vendor" "$CORE_DIR/public/build"
-cp -a "$NEW_RELEASE/vendor" "$CORE_DIR/vendor"
-cp -a "$NEW_RELEASE/public/build" "$CORE_DIR/public/build"
-# bootstrap/ssr optional
-if [[ -d "$NEW_RELEASE/bootstrap/ssr" ]]; then
-  rm -rf "$CORE_DIR/bootstrap/ssr"
-  cp -a "$NEW_RELEASE/bootstrap/ssr" "$CORE_DIR/bootstrap/ssr"
+elif [[ -e "$PUBLIC_DIR/storage" ]]; then
+  # A real directory is squatting the symlink path — move it aside then link
+  rm -rf "$PUBLIC_DIR/storage"
+  ln -sfn "$CORE_DIR/storage/app/public" "$PUBLIC_DIR/storage"
+else
+  ln -sfn "$CORE_DIR/storage/app/public" "$PUBLIC_DIR/storage"
 fi
-
-# Ensure .env in core
-if [[ ! -f "$CORE_DIR/.env" ]]; then
-  cp -a "$NEW_RELEASE/.env" "$CORE_DIR/.env"
-fi
-
-# Storage dirs
-mkdir -p "$CORE_DIR/storage/framework/"{cache,sessions,views} \
-         "$CORE_DIR/storage/app/"{public,private} \
-         "$CORE_DIR/bootstrap/cache"
-chmod -R 775 "$CORE_DIR/storage" "$CORE_DIR/bootstrap/cache" 2>/dev/null || true
-
-# ---------------------------------------------------------------------------
-# 9. Public document root (TGK-public)
-# ---------------------------------------------------------------------------
-log "Syncing document root $PUBLIC_DIR"
-cp -a "$CORE_DIR/public/index.php" "$PUBLIC_DIR/index.php"
-cp -a "$CORE_DIR/public/.htaccess" "$PUBLIC_DIR/.htaccess" 2>/dev/null || true
-
-# Static assets from Laravel public/ → docroot
-# (build, images, css, js, favicon, robots.txt, storage link, etc.)
-if [[ -d "$CORE_DIR/public/build" ]]; then
-  rm -rf "$PUBLIC_DIR/build"
-  cp -a "$CORE_DIR/public/build" "$PUBLIC_DIR/build"
-fi
-# Copy remaining public files/dirs except index.php/.htaccess handled above
-(
-  cd "$CORE_DIR/public"
-  find . -mindepth 1 -maxdepth 1 ! -name index.php ! -name .htaccess ! -name build | while read -r entry; do
-    base=$(basename "$entry")
-    if [[ -L "$entry" ]]; then
-      target=$(readlink "$entry")
-      # Recreate symlink relative to core storage
-      rm -rf "$PUBLIC_DIR/$base"
-      ln -sfn "$target" "$PUBLIC_DIR/$base" || true
-    elif [[ -d "$entry" ]]; then
-      rm -rf "$PUBLIC_DIR/$base"
-      cp -a "$entry" "$PUBLIC_DIR/$base"
-    else
-      cp -a "$entry" "$PUBLIC_DIR/$base"
-    fi
-  done
-)
-
-# storage: → docroot /storage must resolve to core storage/app/public
-rm -rf "$PUBLIC_DIR/storage"
-mkdir -p "$CORE_DIR/storage/app/public"
-ln -sfn "$CORE_DIR/storage/app/public" "$PUBLIC_DIR/storage"
 chmod 775 "$CORE_DIR/storage/app/public" 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
-# 10. Laravel optimize + migrations
+# 11. Laravel: clear caches, run migrations, rebuild caches
 # ---------------------------------------------------------------------------
-log "Running artisan…"
-cd "$CORE_DIR"
+log "Clearing caches…"
+for c in config route view cache; do "$PHP_BIN" artisan "$c:clear" >/dev/null 2>&1 || true; done
 
-# DB may need migrate; fail soft if migrate not allowed (then warn)
-"$PHP_BIN" artisan config:clear || true
-"$PHP_BIN" artisan route:clear || true
-"$PHP_BIN" artisan view:clear || true
-"$PHP_BIN" artisan cache:clear || true
+log "Running migrations…"
+MIG_STATE="$("$PHP_BIN" artisan tinker --execute="try { echo Schema::hasTable('migrations') ? DB::table('migrations')->count() : 0; } catch (\Throwable \$e) { echo 'ERR'; }" 2>/dev/null | tr -d '[:space:]')"
+case "$MIG_STATE" in
+  ERR|"")
+    warn "Database unreachable (check DB_* in .env). Skipping migrations." ;;
+  0)
+    log "Empty schema — bootstrapping with migrate:fresh"
+    "$PHP_BIN" artisan migrate:fresh --force --no-interaction || warn "migrate:fresh failed" ;;
+  *)
+    "$PHP_BIN" artisan migrate --force --no-interaction || warn "migrate failed" ;;
+esac
 
-if "$PHP_BIN" artisan migrate --force --no-interaction; then
-  log "Migrations OK"
-else
-  echo "WARNING: migrate failed (check DB credentials / privileges). Continuing…"
-fi
-
-"$PHP_BIN" artisan storage:link --force 2>/dev/null || true
+log "Building production caches…"
+"$PHP_BIN" artisan storage:link --force >/dev/null 2>&1 || true
 "$PHP_BIN" artisan config:cache
 "$PHP_BIN" artisan route:cache
 "$PHP_BIN" artisan view:cache
 "$PHP_BIN" artisan event:cache 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
-# 11. Cleanup old releases (SCP/tar replacement for rsync prune)
+# 12. Retain release tarball for rollback; prune old ones
 # ---------------------------------------------------------------------------
-log "Cleaning old releases (keep $KEEP_RELEASES)…"
-if [[ -d "$RELEASES_DIR" ]]; then
-  # shellcheck disable=SC2012
-  ls -1dt "$RELEASES_DIR"/*/ 2>/dev/null | tail -n +"$((KEEP_RELEASES + 1))" | while read -r old; do
-    log "Removing $old"
-    rm -rf "$old"
-  done
-fi
-
-# Remove stray upload archive
+log "Archiving release tarball for rollback (keep $KEEP_RELEASES)…"
+cp -a "$RELEASE_ARCHIVE" "$RELEASES_DIR/release-$RELEASE_ID.tar.gz" 2>/dev/null || true
+# shellcheck disable=SC2012
+ls -1dt "$RELEASES_DIR"/release-*.tar.gz 2>/dev/null | tail -n +"$((KEEP_RELEASES + 1))" | while read -r old; do
+  log "Pruning old release $(basename "$old")"
+  rm -f "$old"
+done
 rm -f "$RELEASE_ARCHIVE"
 
 # ---------------------------------------------------------------------------
-# 12. Post-deploy confirmation
+# 13. Structure verification
 # ---------------------------------------------------------------------------
 log "Verifying expected structure…"
 fail=0
-require_path() {
-  if [[ ! -e "$1" ]]; then
-    echo "MISSING: $1"
-    fail=1
-  else
-    echo "OK: $1"
-  fi
-}
+require() { if [[ -e "$1" ]]; then echo "  OK   $1"; else echo "  MISS $1"; fail=1; fi; }
 
-require_path "$CORE_DIR/artisan"
-require_path "$CORE_DIR/.env"
-require_path "$CORE_DIR/vendor/autoload.php"
-require_path "$CORE_DIR/public/build/manifest.json"
-require_path "$CORE_DIR/bootstrap/app.php"
-require_path "$CORE_DIR/storage/framework"
-require_path "$CORE_DIR/bootstrap/cache/config.php"
-require_path "$PUBLIC_DIR/index.php"
-require_path "$PUBLIC_DIR/.htaccess"
-require_path "$PUBLIC_DIR/build/manifest.json"
-require_path "$PUBLIC_DIR/storage"
+require "$CORE_DIR/artisan"
+require "$CORE_DIR/.env"
+require "$CORE_DIR/vendor/autoload.php"
+require "$CORE_DIR/bootstrap/app.php"
+require "$CORE_DIR/bootstrap/cache/config.php"
+require "$CORE_DIR/public/build/manifest.json"
+require "$CORE_DIR/storage/framework"
+require "$PUBLIC_DIR/index.php"
+require "$PUBLIC_DIR/.htaccess"
+require "$PUBLIC_DIR/build/manifest.json"
 
-# index.php must point at core
-if ! grep -q "$CORE_DIR" "$PUBLIC_DIR/index.php"; then
-  echo "ERROR: $PUBLIC_DIR/index.php does not reference $CORE_DIR"
-  fail=1
+# index.php must boot CORE_DIR
+grep -q "$CORE_DIR" "$PUBLIC_DIR/index.php" \
+  || { echo "  FAIL $PUBLIC_DIR/index.php does not reference $CORE_DIR"; fail=1; }
+
+# /storage must be a symlink to the core public storage
+if [[ -L "$PUBLIC_DIR/storage" ]]; then
+  echo "  OK   $PUBLIC_DIR/storage -> $(readlink "$PUBLIC_DIR/storage")"
+else
+  echo "  FAIL $PUBLIC_DIR/storage is not a symlink"; fail=1
 fi
 
-# storage symlink target
-if [[ -d "$PUBLIC_DIR/storage" ]]; then
-  echo "OK: storage present in docroot"
-fi
+[[ "$fail" -eq 0 ]] || die "structure verification failed"
 
-if [[ "$fail" -ne 0 ]]; then
-  echo "ERROR: structure verification failed"
-  exit 1
-fi
-
-log "Deploy complete: $RELEASE_ID"
-log "Releases retained: $(ls -1d "$RELEASES_DIR"/*/ 2>/dev/null | wc -l)"
+log "Deploy complete: release $RELEASE_ID"
+log "Rollback tarballs: $(ls -1 "$RELEASES_DIR"/release-*.tar.gz 2>/dev/null | wc -l | tr -d ' ')"
 exit 0

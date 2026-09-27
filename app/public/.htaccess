@@ -5,6 +5,22 @@
 
     RewriteEngine On
 
+    # --- Canonical host + HTTPS (managed via SSL on GoDaddy) ------------------
+    # Force HTTPS (skip if already forwarded as https by a proxy/load balancer).
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Redirect goodkenyan.com (and www.goodkenyan.com) to the canonical
+    # goodkenyan.org so both registered domains serve one canonical URL set.
+    RewriteCond %{HTTP_HOST} ^(www\.)?goodkenyan\.com$ [NC]
+    RewriteRule ^ https://goodkenyan.org%{REQUEST_URI} [L,R=301]
+
+    # Drop www. on the canonical domain.
+    RewriteCond %{HTTP_HOST} ^www\.goodkenyan\.org$ [NC]
+    RewriteRule ^ https://goodkenyan.org%{REQUEST_URI} [L,R=301]
+    # -------------------------------------------------------------------------
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

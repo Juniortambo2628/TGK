@@ -25,9 +25,11 @@ app/storage/logs/*
 .env
 .env.backup
 .env.production
+.env.*.local
 app/.env
 app/.env.backup
 app/.env.production
+app/.env.*.local
 app/.phpactor.json
 app/.phpunit.result.cache
 app/Homestead.json
@@ -35,6 +37,20 @@ app/Homestead.yaml
 app/npm-debug.log
 app/yarn-error.log
 app/auth.json
+
+# SSH / deploy keys — NEVER commit (private key goes in the SSH_PRIVATE_KEY secret)
+github-actions-*
+*.pem
+*.ppk
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+known_hosts
+
+# Deploy build/staging artifacts
+dist/
+app/dist/
 
 # Databases
 *.sqlite

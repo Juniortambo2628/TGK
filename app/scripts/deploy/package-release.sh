@@ -43,6 +43,12 @@ if [[ -f .env.production ]]; then
   cp .env.production "$STAGE/.env"
 fi
 
+# Ship the (secret-free) production example so server-deploy has a last-resort
+# .env seed when neither a live .env nor PROD_ENV is present.
+if [[ -f .env.production.example ]]; then
+  cp .env.production.example "$STAGE/.env.production.example"
+fi
+
 # Composer production install into stage
 if [[ ! -d "$STAGE/vendor" ]]; then
   echo "Installing production composer deps…"
