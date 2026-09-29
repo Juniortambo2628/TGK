@@ -1,17 +1,16 @@
 import { Link } from '@inertiajs/react';
 import Container from '../../Components/Container';
 import StoryCard from '../../Components/StoryCard';
+import RichText from '../../Components/RichText';
 import { Reveal, Stagger } from '../../Components/Motion';
 
 export default function StoryShow({ story, related = [] }) {
-    const paragraphs = String(story.body || '').split(/\n{2,}/).filter(Boolean);
-
     return (
         <>
             <article>
                 <div className="relative isolate min-h-[60vh] lg:min-h-[70vh] flex items-end overflow-hidden">
                     <div className="absolute inset-0 -z-10">
-                        <img src={story.hero_url} alt={story.title} className="h-full w-full object-cover" {...({ fetchpriority: 'high' })} />
+                        <img src={story.hero_url} alt={story.title} className="h-full w-full object-cover" style={{ objectPosition: story.hero_position || '50% 50%' }} {...({ fetchpriority: 'high' })} />
                         <div className="absolute inset-0 bg-gradient-to-b from-brand-charcoal/40 via-brand-charcoal/60 to-brand-charcoal/95" />
                     </div>
                     <Container className="py-16 lg:py-20">
@@ -33,13 +32,12 @@ export default function StoryShow({ story, related = [] }) {
                 <section className="py-16 lg:py-24">
                     <Container>
                         <div className="max-w-3xl mx-auto">
-                            {paragraphs.map((p, i) => (
-                                <Reveal key={i} delay={Math.min(i * 0.03, 0.3)}>
-                                    <p className="mt-6 first:mt-0 text-lg leading-relaxed text-brand-charcoal">
-                                        {p.startsWith('"') ? <span className="block border-l-4 border-brand-red pl-6 italic text-xl text-brand-charcoal">{p}</span> : p}
-                                    </p>
-                                </Reveal>
-                            ))}
+                            <Reveal>
+                                <RichText
+                                    html={story.body}
+                                    className="text-lg leading-relaxed text-brand-charcoal [&_p]:mt-6 [&_p:first-child]:mt-0 [&_blockquote]:border-l-4 [&_blockquote]:border-brand-red [&_blockquote]:pl-6 [&_blockquote]:italic [&_blockquote]:text-xl"
+                                />
+                            </Reveal>
                         </div>
                     </Container>
                 </section>

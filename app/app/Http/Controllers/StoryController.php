@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Support\Content;
+use App\Support\Html;
 use Inertia\Inertia;
 
 class StoryController extends Controller
@@ -37,7 +38,7 @@ class StoryController extends Controller
 
         $related = Post::published()
             ->where('id', '!=', $story->id)
-            ->orderByDesc('published_at')
+            ->inRandomOrder()
             ->take(3)
             ->get()
             ->map(fn ($p) => $this->transform($p));
@@ -48,7 +49,7 @@ class StoryController extends Controller
 
         return Inertia::render('Stories/Show', [
             'story' => array_merge($this->transform($story), [
-                'body' => $story->body,
+                'body' => Html::paragraphs($story->body),
             ]),
             'related' => $related,
             'seo' => [
@@ -116,6 +117,7 @@ class StoryController extends Controller
             'excerpt' => $p->excerpt,
             'hero_image' => $p->hero_image,
             'hero_url' => $p->hero_url,
+            'hero_position' => $p->hero_position,
             'published_at' => optional($p->published_at)->toIso8601String(),
         ];
     }

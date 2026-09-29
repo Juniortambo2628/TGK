@@ -22,7 +22,10 @@ export default function Form({ post = null }) {
         slug: post?.slug || '',
         excerpt: post?.excerpt || '',
         body: post?.body || '',
-        hero_image: post?.hero_url || '',
+        // Store the raw reference (not the resolved URL) so it round-trips
+        // unchanged on save and the cover image is never lost on edit.
+        hero_image: post?.hero_image || '',
+        hero_position: post?.hero_position || '50% 50%',
         seo_title: post?.seo_title || '',
         seo_description: post?.seo_description || '',
         published_at: post?.published_at
@@ -69,7 +72,9 @@ export default function Form({ post = null }) {
                             </div>
                             <FileUploader
                                 value={data.hero_image}
-                                onChange={(url) => setData('hero_image', url || '')}
+                                onChange={(path) => setData('hero_image', path || '')}
+                                position={data.hero_position}
+                                onPositionChange={(pos) => setData('hero_position', pos)}
                                 folder="stories"
                                 accept="image/*"
                                 maxSizeMB={5}

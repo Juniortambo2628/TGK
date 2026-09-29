@@ -25,11 +25,34 @@ class MediaController extends Controller
     {
         $request->validate(['file' => 'required|file|image|max:15360']);
 
-        $file = $request->file('file');
-        $path = $file->store('uploads/library', 'public');
-        ImageOptimizer::optimizeUploadedFile($file, 'public', 'uploads/library');
+        $folder = trim(preg_replace('#[^a-z0-9/_-]#i', '', (string) $request->input('folder', '')), '/');
+        $directory = 'uploads/'.($folder !== '' && $folder !== 'uploads' ? $folder : 'library');
+
+        // Store exactly one optimized file. Previously we also called
+        // ->store() first, which left an un-optimized duplicate in the library
+        // on every upload.
+        $path = ImageOptimizer::optimizeUploadedFile($request->file('file'), 'public', $directory);
 
         return response()->json(['path' => $path, 'url' => asset('storage/'.$path)]);
+    }
+
+    /**
+     * JSON list of library media for the in-form "Select from library" picker.
+     */
+    public function library(Request $request)
+    {
+        return response()->json([
+            'media' => MediaLibrary::all($request->input('search'), $request->input('folder', 'all'))
+                ->map(fn ($m) => [
+                    'id' => $m['id'],
+                    'name' => $m['name'],
+                    'path' => $m['path'],
+                    'url' => $m['url'],
+                    'folder' => $m['folder'],
+                ])
+                ->values(),
+            'folders' => MediaLibrary::folders(),
+        ]);
     }
 
     public function destroy(Request $request)

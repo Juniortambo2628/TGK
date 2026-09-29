@@ -14,6 +14,33 @@ class Html
 {
     protected const ALLOWED_TAGS = '<p><br><strong><b><em><i><u><a><ul><ol><li><h2><h3><h4><blockquote><hr><span>';
 
+    /**
+     * Normalise editor/legacy story body into safe, paragraph-structured HTML.
+     * New stories come from the rich editor as HTML; older ones may be plain
+     * text with blank-line paragraph breaks. Either way we return purified HTML
+     * so the frontend can render it directly instead of showing raw <p> tags.
+     */
+    public static function paragraphs(?string $body): string
+    {
+        if ($body === null || trim($body) === '') {
+            return '';
+        }
+
+        // Already contains HTML tags → just sanitise it.
+        if (preg_match('/<[a-z][\s\S]*>/i', $body)) {
+            return self::purify($body);
+        }
+
+        // Plain text → wrap blank-line-separated blocks in <p>, keep single
+        // line breaks as <br>.
+        $blocks = preg_split('/\R{2,}/', trim($body));
+        $html = collect($blocks)
+            ->map(fn ($b) => '<p>'.nl2br(e(trim($b))).'</p>')
+            ->implode('');
+
+        return self::purify($html);
+    }
+
     public static function purify(?string $html): string
     {
         if ($html === null || $html === '') {
