@@ -92,6 +92,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // Media Gallery
     Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+    Route::get('/media/library', [MediaController::class, 'library'])->name('media.library');
     Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
     Route::delete('/media', [MediaController::class, 'destroy'])->name('media.destroy');
     Route::post('/media/optimize', [MediaController::class, 'optimize'])->name('media.optimize');

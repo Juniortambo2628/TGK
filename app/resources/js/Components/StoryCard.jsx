@@ -18,6 +18,7 @@ export default function StoryCard({ story, priority = false }) {
                         alt={story.title}
                         loading={priority ? 'eager' : 'lazy'}
                         onLoad={() => setImageLoaded(true)}
+                        style={{ objectPosition: story.hero_position || '50% 50%' }}
                         className={`h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.04] ${
                             imageLoaded ? 'opacity-100' : 'opacity-0'
                         }`}

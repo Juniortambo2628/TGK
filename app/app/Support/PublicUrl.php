@@ -40,6 +40,30 @@ class PublicUrl
     }
 
     /**
+     * Canonical *relative* reference for a stored image (not an absolute URL):
+     * the value that both this class (PHP) and lib/urls.js (JS) resolve the
+     * same way. Bare filenames get the given prefix so admin previews resolve.
+     * Used when handing a stored reference back to an editor to round-trip.
+     */
+    public static function relative(mixed $value, string $prefix = ''): ?string
+    {
+        if (is_array($value)) {
+            $value = reset($value) ?: null;
+        }
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+        if (str_starts_with($value, 'http')
+            || str_starts_with($value, 'uploads/')
+            || str_starts_with($value, 'images/')
+            || str_starts_with($value, '/images/')) {
+            return ltrim($value, '/');
+        }
+
+        return $prefix !== '' ? $prefix.ltrim($value, '/') : ltrim($value, '/');
+    }
+
+    /**
      * @param  array|mixed  $values
      * @return array<int,string>
      */

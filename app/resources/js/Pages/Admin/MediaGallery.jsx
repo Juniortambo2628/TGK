@@ -62,12 +62,13 @@ export default function MediaGallery({ media = [], folders = {} }) {
                         <h3 className="text-sm font-bold text-brand-charcoal mb-2">Upload New Media</h3>
                         <FileUploader
                             value={uploadedUrl}
-                            onChange={setUploadedUrl}
+                            onChange={(path) => { setUploadedUrl(path); if (path) router.reload({ only: ['media', 'folders'] }); }}
                             folder={activeFolder === 'All' ? 'uncategorized' : activeFolder.toLowerCase()}
                             accept="image/*"
                             maxSizeMB={5}
                             maxWidth={1920}
                             quality={0.85}
+                            library={false}
                             label="Drop image here or click to browse"
                         />
                     </div>

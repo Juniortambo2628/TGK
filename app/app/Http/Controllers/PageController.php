@@ -12,7 +12,9 @@ class PageController extends Controller
 {
     public function home()
     {
-        $stories = Post::published()->orderByDesc('published_at')->take(4)->get()
+        // Shuffle on every load so visitors discover different stories instead
+        // of the same four each time.
+        $stories = Post::published()->inRandomOrder()->take(4)->get()
             ->map(fn ($p) => $this->transformStory($p));
 
         return Inertia::render('Home', [
@@ -122,6 +124,7 @@ class PageController extends Controller
             'excerpt' => $p->excerpt,
             'hero_image' => $p->hero_image,
             'hero_url' => $p->hero_url,
+            'hero_position' => $p->hero_position,
             'published_at' => optional($p->published_at)->toIso8601String(),
         ];
     }

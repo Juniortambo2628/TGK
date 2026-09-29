@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Support\PublicUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -32,6 +33,7 @@ class PostController extends Controller
             'excerpt' => 'nullable|max:500',
             'body' => 'required',
             'hero_image' => 'nullable|string',
+            'hero_position' => 'nullable|string|max:20',
             'seo_title' => 'nullable|max:200',
             'seo_description' => 'nullable|max:300',
             'published_at' => 'nullable|date',
@@ -53,7 +55,11 @@ class PostController extends Controller
                 'slug' => $post->slug,
                 'excerpt' => $post->excerpt,
                 'body' => $post->body,
-                'hero_image' => $post->hero_image,
+                // Canonical relative reference (not the resolved URL) so the
+                // preview resolves and the value round-trips unchanged on save
+                // instead of the cover image being lost.
+                'hero_image' => PublicUrl::relative($post->hero_image, 'images/stories/'),
+                'hero_position' => $post->hero_position,
                 'seo_title' => $post->seo_title,
                 'seo_description' => $post->seo_description,
                 'published_at' => optional($post->published_at)->toIso8601String(),
@@ -69,6 +75,7 @@ class PostController extends Controller
             'excerpt' => 'nullable|max:500',
             'body' => 'required',
             'hero_image' => 'nullable|string',
+            'hero_position' => 'nullable|string|max:20',
             'seo_title' => 'nullable|max:200',
             'seo_description' => 'nullable|max:300',
             'published_at' => 'nullable|date',

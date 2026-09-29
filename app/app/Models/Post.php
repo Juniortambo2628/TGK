@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Post extends Model
 {
     protected $fillable = [
-        'slug', 'title', 'excerpt', 'body', 'hero_image', 'seo_title', 'seo_description', 'published_at',
+        'slug', 'title', 'excerpt', 'body', 'hero_image', 'hero_position', 'seo_title', 'seo_description', 'published_at',
     ];
 
     protected $casts = [
@@ -25,6 +25,12 @@ class Post extends Model
         return PublicUrl::image($this->hero_image, null, 'images/stories/');
     }
 
+    /** CSS object-position for the hero image, always a usable value. */
+    public function getHeroPositionAttribute($value): string
+    {
+        return $value ?: '50% 50%';
+    }
+
     public function toPublicArray(): array
     {
         return [
@@ -33,6 +39,7 @@ class Post extends Model
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
             'hero_url' => $this->hero_url,
+            'hero_position' => $this->hero_position,
             'is_published' => $this->published_at && $this->published_at->isPast(),
             'published_at' => optional($this->published_at)->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
