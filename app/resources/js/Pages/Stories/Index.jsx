@@ -66,6 +66,7 @@ export default function StoriesIndex({ stories = [] }) {
                         {/* Sidebar — desktop */}
                         <aside className="hidden lg:block lg:col-span-3">
                             <Sidebar
+                                cms={cms}
                                 stories={stories}
                                 filtered={filtered}
                                 years={years}
@@ -133,6 +134,7 @@ export default function StoriesIndex({ stories = [] }) {
                             </div>
                             <div className="p-5">
                                 <Sidebar
+                                    cms={cms}
                                     stories={stories}
                                     filtered={filtered}
                                     years={years}
@@ -148,7 +150,7 @@ export default function StoriesIndex({ stories = [] }) {
     );
 }
 
-function Sidebar({ stories, filtered, years, year, onYearChange }) {
+function Sidebar({ cms, stories, filtered, years, year, onYearChange }) {
     return (
         <div className="lg:sticky lg:top-24 space-y-8">
             {/* Timeline */}
@@ -202,7 +204,7 @@ function Sidebar({ stories, filtered, years, year, onYearChange }) {
 
             <div className="pt-6 border-t border-brand-hairline">
                 <p className="text-sm text-brand-grey leading-relaxed">
-                    Every story here is shared with the person's consent. If you want to add your own, we would love to hear it.
+                    {cms.text('sidebar.footer_note', "Every story here is shared with the person's consent. If you want to add your own, we would love to hear it.")}
                 </p>
                 <Link href={cms.text('cta.route', '/contact?topic=general')} className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-brand-red">
                     {cms.text('cta.label', 'Share a story')} →
